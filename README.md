@@ -1,7 +1,7 @@
 # Co-opilot
 
 ## Project Description
-A social matching app for Waterloo students — designed to help you find study buddies, mock interview partners, or just someone to share the grind with.
+A social matching app for Waterloo students. Designed to help you find study buddies, mock interview partners, or just someone to share the grind with.
 
 ## Team details
 LAB102- 11
@@ -10,5 +10,5 @@ LAB102- 11
 - Benny Wu - b5wu@uwaterloo.ca
 - Molly Wu - m46wu@uwaterloo.ca
 
-## Team Contract
-Refer to [this link](https://git.uwaterloo.ca/b5wu/co-opilot/-/wikis/Team-Contract) for details
+## Other Links
+Check out our [super cool project proposal](https://git.uwaterloo.ca/b5wu/co-opilot/-/wikis/Project-Proposal) and [team contract](https://git.uwaterloo.ca/b5wu/co-opilot/-/wikis/Team-Contract)! 🙌
