@@ -11,4 +11,4 @@ LAB102- 11
 - Molly Wu - m46wu@uwaterloo.ca
 
 ## Other Links
-Check out our super cool [project proposal](https://git.uwaterloo.ca/b5wu/co-opilot/-/wikis/Project-Proposal) and [team contract](https://git.uwaterloo.ca/b5wu/co-opilot/-/wikis/Team-Contract)! 🙌
+Check out our super cool [**project proposal**](https://git.uwaterloo.ca/b5wu/co-opilot/-/wikis/Project-Proposal) and [team contract](https://git.uwaterloo.ca/b5wu/co-opilot/-/wikis/Team-Contract)! 🙌
