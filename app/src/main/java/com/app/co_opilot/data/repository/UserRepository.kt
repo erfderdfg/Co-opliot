@@ -9,14 +9,14 @@ import java.io.File
 import java.util.Date
 
 // UserService owns it
-class UserRepository( /* Inject remote API (Supabase DB Client) service */ ) {
+open class UserRepository( /* Inject remote API (Supabase DB Client) service */ ) {
     private var users = mutableListOf<User>()
     suspend fun getUser(userId: String) : User? {
-        // dummy data: modify when connecting to Supabase
+        // dummy data: modify when connecting to Supabase, maybe assign users to supabase result
         return users.find { user: User -> user.id == userId }
     }
 
-    suspend fun createUser(id: String, name: String, email: String, avatar: String, createdAt: Date, updatedAt: Date, basicProfile: BasicProfile, academicProfile: AcademicProfile, careerProfile: CareerProfile, socialProfile: SocialProfile) {
+    suspend fun createUser(id: String, name: String, email: String, avatar: String?, createdAt: Date, updatedAt: Date, basicProfile: BasicProfile, academicProfile: AcademicProfile, careerProfile: CareerProfile, socialProfile: SocialProfile) {
         users.add(User(id, name, email, avatar, createdAt, updatedAt, basicProfile, academicProfile, careerProfile, socialProfile))
     }
 
@@ -33,8 +33,8 @@ class UserRepository( /* Inject remote API (Supabase DB Client) service */ ) {
         academic: AcademicProfile? = null,
         career: CareerProfile? = null,
         social: SocialProfile? = null
-    ) {
-        val user = users.find { it.id == userId } ?: return
+    ): Boolean {
+        val user = users.find { it.id == userId } ?: return false
         val updatedUser = user.copy(
             basicProfile = basic ?: user.basicProfile,
             academicProfile = academic ?: user.academicProfile,
@@ -43,14 +43,11 @@ class UserRepository( /* Inject remote API (Supabase DB Client) service */ ) {
             updatedAt = Date()
         )
         updateUser(updatedUser)
+        return true;
     }
 
-    suspend fun updateUserAvatar(userId: String, avatar: File) {
-        // TODO: will need Supabase Blob storage first
-    }
-
-    suspend fun deleteUser(userId: String) {
-        users.removeAll { it.id == userId }
+    suspend fun deleteUser(userId: String): Boolean {
+        return users.removeAll { it.id == userId }
     }
 
     suspend fun getAllUsers(): List<User> {
