@@ -8,14 +8,32 @@ class ChatService(
     private val chatRepo: ChatRepository
 ) {
 
-    suspend fun sendMessage(senderId: String, receiverId: String, message: String) {
-        // find chat Id of user1 and user2
-        val chat: Chat = chatRepo.getChat(senderId, receiverId);
+    suspend fun sendMessage(senderId: String, receiverId: String, message: String): Boolean {
 
-        // send message of chat
-        chatRepo.sendMessage(Message("mid", "cid", senderId, message, "2025-05-10"));
+        var chat: Chat = try {
+            chatRepo.getChat(senderId, receiverId)
+        }
+        catch (e: IllegalArgumentException) {
+            // create new chat session if it doesn't exist
+            chatRepo.initSession(senderId, receiverId)
+        }
+
+        // execute send message
+        return chatRepo.sendMessage(senderId, chat.id, message)
+
     }
 
-    // loadChatHistory(user1, user2)
-    // loadChatSessions(user)
+
+    suspend fun loadChatHistory(userOneId: String, userTwoId: String): List<Message> {
+        // Try to find chat or create it if not exists
+        val chat: Chat = try {
+            chatRepo.getChat(userOneId, userTwoId)
+        } catch (e: IllegalArgumentException) {
+            chatRepo.initSession(userOneId, userTwoId)
+        }
+
+        // Return all messages in this chat session
+        return chatRepo.getChatHistory(chat.id)
+    }
+
 }
