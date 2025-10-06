@@ -61,4 +61,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:1.3.2")     // Auth
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:1.3.2")  // Database
+    implementation("io.github.jan-tennert.supabase:realtime-kt:1.3.2")   // Realtime
+
 }
