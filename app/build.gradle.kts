@@ -81,10 +81,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // Supabase dependencies
+    // Supabase (now using version 2.6.1)
     implementation(libs.gotrue.kt)
     implementation(libs.postgrest.kt)
     implementation(libs.realtime.kt)
-    implementation("io.ktor:ktor-client-android:2.3.2")
-    implementation("io.ktor:ktor-client-core:2.3.2")
+
+    // Ktor (required for Supabase 2.x)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.core)
+
+    implementation(libs.kotlinx.serialization.json)
 }
