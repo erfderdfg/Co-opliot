@@ -92,3 +92,7 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 }
+
+tasks.withType<Test> {
+    useJUnit()
+}
