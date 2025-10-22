@@ -4,32 +4,23 @@ import com.app.co_opilot.data.SupabaseClient
 import com.app.co_opilot.domain.Relationship
 import com.app.co_opilot.domain.enums.RelationshipStatus
 import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.serialization.Serializable
 import java.util.*
 
-@Serializable
-data class RelationshipDto(
-    val id: String,
-    val user_one_id: String,
-    val user_two_id: String?,
-    val status: String?,
-    val created_at: String? = null
-)
 
 class RelationshipRepository {
 
     private val supabase = SupabaseClient.client
 
-    suspend fun getAllRelationships(): List<RelationshipDto> {
+    suspend fun getAllRelationships(): List<Relationship> {
         return try {
-            supabase.postgrest["relationships"].select().decodeList<RelationshipDto>()
+            supabase.postgrest["relationships"].select().decodeList<Relationship>()
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
     }
 
-    suspend fun getRelationshipsForUser(userId: String): List<RelationshipDto> {
+    suspend fun getRelationshipsForUser(userId: String): List<Relationship> {
         return try {
             supabase.postgrest["relationships"]
                 .select {
@@ -37,7 +28,7 @@ class RelationshipRepository {
                         "user_one_id" to userId
                     }
                 }
-                .decodeList<RelationshipDto>()
+                .decodeList<Relationship>()
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
@@ -46,14 +37,15 @@ class RelationshipRepository {
 
     suspend fun addRelationship(userOneId: String, userTwoId: String, status: RelationshipStatus): Boolean {
         return try {
-            val dto = RelationshipDto(
+            val relationship = Relationship(
                 id = UUID.randomUUID().toString(),
-                user_one_id = userOneId,
-                user_two_id = userTwoId,
-                status = status.name,
-                created_at = Date().toInstant().toString()
+                userOneId = userOneId,
+                userTwoId = userTwoId,
+                status = status,
+                createdAt = Date().toInstant().toString(),
+                updatedAt = Date().toInstant().toString()
             )
-            supabase.postgrest["relationships"].insert(listOf(dto))
+            supabase.postgrest["relationships"].insert(listOf(relationship))
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -61,7 +53,7 @@ class RelationshipRepository {
         }
     }
 
-    suspend fun findRelationship(userOneId: String, userTwoId: String): RelationshipDto? {
+    suspend fun findRelationship(userOneId: String, userTwoId: String): Relationship? {
         return try {
             supabase.postgrest["relationships"]
                 .select {
@@ -70,7 +62,7 @@ class RelationshipRepository {
                         "user_two_id" to userTwoId
                     }
                 }
-                .decodeList<RelationshipDto>()
+                .decodeList<Relationship>()
                 .firstOrNull()
         } catch (e: Exception) {
             e.printStackTrace()
