@@ -43,9 +43,8 @@ open class UserRepository {
                         eq("id", userId)
                     }
                 }
-                .decodeSingle<UserDto>()
-
-            result.toDomain()
+                .decodeSingle<User>()
+            result
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -64,18 +63,20 @@ open class UserRepository {
         careerProfile: CareerProfile,
         socialProfile: SocialProfile
     ) {
-        val userDto = UserDto(
+        val user = User(
             id = id,
             name = name,
             email = email,
-            avatar_url = avatarUrl,
-            basic_profile = basicProfile,
-            academic_profile = academicProfile,
-            career_profile = careerProfile,
-            social_profile = socialProfile
+            avatarUrl = avatarUrl,
+            createdAt = createdAt.toString(),
+            updatedAt = updatedAt.toString(),
+            basicProfile = basicProfile,
+            academicProfile = academicProfile,
+            careerProfile = careerProfile,
+            socialProfile = socialProfile
         )
 
-        supabase.postgrest["users"].insert(userDto)
+        supabase.postgrest["users"].insert(user)
     }
 
     suspend fun updateUserProfiles(
@@ -88,21 +89,21 @@ open class UserRepository {
         return try {
             val currentUser = getUser(userId) ?: return false
 
-            val updatedDto = UserDto(
+            val updatedUser = User(
                 id = userId,
                 name = currentUser.name,
                 email = currentUser.email,
-                avatar_url = currentUser.avatarUrl,
-                created_at = currentUser.createdAt.toInstant().toString(),
-                updated_at = Date().toInstant().toString(),
-                basic_profile = basic ?: currentUser.basicProfile,
-                academic_profile = academic ?: currentUser.academicProfile,
-                career_profile = career ?: currentUser.careerProfile,
-                social_profile = social ?: currentUser.socialProfile
+                avatarUrl = currentUser.avatarUrl,
+                createdAt = currentUser.createdAt,
+                updatedAt = Date().toInstant().toString(),
+                basicProfile = basic ?: currentUser.basicProfile,
+                academicProfile = academic ?: currentUser.academicProfile,
+                careerProfile = career ?: currentUser.careerProfile,
+                socialProfile = social ?: currentUser.socialProfile
             )
 
             supabase.postgrest["users"]
-                .update(updatedDto) {
+                .update(updatedUser) {
                     filter {
                         "id" to userId
                     }
@@ -124,21 +125,21 @@ open class UserRepository {
         return try {
             val currentUser = getUser(userId) ?: return false
 
-            val updatedDto = UserDto(
+            val updatedUser = User(
                 id = userId,
                 name = name ?: currentUser.name,
                 email = email ?: currentUser.email,
-                avatar_url = avatar ?: currentUser.avatarUrl,
-                created_at = currentUser.createdAt.toInstant().toString(),
-                updated_at = Date().toInstant().toString(),
-                basic_profile = currentUser.basicProfile,
-                academic_profile = currentUser.academicProfile,
-                career_profile = currentUser.careerProfile,
-                social_profile = currentUser.socialProfile
+                avatarUrl = avatar ?: currentUser.avatarUrl,
+                createdAt = currentUser.createdAt,
+                updatedAt = Date().toInstant().toString(),
+                basicProfile = currentUser.basicProfile,
+                academicProfile = currentUser.academicProfile,
+                careerProfile = currentUser.careerProfile,
+                socialProfile = currentUser.socialProfile
             )
 
             supabase.postgrest["users"]
-                .update(updatedDto) {
+                .update(updatedUser) {
                     filter {
                         eq("id", userId)
                     }
@@ -170,48 +171,48 @@ open class UserRepository {
         return try {
             val results = supabase.postgrest["users"]
                 .select()
-                .decodeList<UserDto>()
+                .decodeList<User>()
 
-            results.map { it.toDomain() }
+            results.map { it }
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
     }
 
-    private fun UserDto.toDomain(): User {
-        fun parseMaybeTimezoneAware(input: String?): Date? {
-            if (input == null) return null
-            // simple check: contains 'Z' or an offset like "+02:00" use Instant.parse
-            val hasZone = input.endsWith("Z", ignoreCase = true) || input.matches(".*[+-]\\d{2}:?\\d{2}\$".toRegex())
-            return if (hasZone) {
-                try { Date.from(Instant.parse(input)) } catch (e: Exception) { null }
-            } else {
-                parseTimestampNoZone(input, ZoneId.of("UTC"))
-            }
-        }
-
-        return User(
-            id = id,
-            name = name,
-            email = email,
-            avatarUrl = avatar_url,
-            createdAt = parseMaybeTimezoneAware(created_at) ?: Date(),
-            updatedAt = parseMaybeTimezoneAware(updated_at) ?: Date(),
-            basicProfile = basic_profile ?: BasicProfile(),
-            academicProfile = academic_profile ?: AcademicProfile(),
-            careerProfile = career_profile ?: CareerProfile(),
-            socialProfile = social_profile ?: SocialProfile()
-        )
-    }
-
-    fun parseTimestampNoZone(input: String, zone: ZoneId = ZoneId.systemDefault()): Date? {
-        return try {
-            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-            val ldt = LocalDateTime.parse(input, formatter)
-            Date.from(ldt.atZone(zone).toInstant())
-        } catch (e: Exception) {
-            null
-        }
-    }
+//    private fun UserDto.toDomain(): User {
+//        fun parseMaybeTimezoneAware(input: String?): Date? {
+//            if (input == null) return null
+//            // simple check: contains 'Z' or an offset like "+02:00" use Instant.parse
+//            val hasZone = input.endsWith("Z", ignoreCase = true) || input.matches(".*[+-]\\d{2}:?\\d{2}\$".toRegex())
+//            return if (hasZone) {
+//                try { Date.from(Instant.parse(input)) } catch (e: Exception) { null }
+//            } else {
+//                parseTimestampNoZone(input, ZoneId.of("UTC"))
+//            }
+//        }
+//
+//        return User(
+//            id = id,
+//            name = name,
+//            email = email,
+//            avatarUrl = avatar_url,
+//            createdAt = parseMaybeTimezoneAware(created_at) ?: Date(),
+//            updatedAt = parseMaybeTimezoneAware(updated_at) ?: Date(),
+//            basicProfile = basic_profile ?: BasicProfile(),
+//            academicProfile = academic_profile ?: AcademicProfile(),
+//            careerProfile = career_profile ?: CareerProfile(),
+//            socialProfile = social_profile ?: SocialProfile()
+//        )
+//    }
+//
+//    fun parseTimestampNoZone(input: String, zone: ZoneId = ZoneId.systemDefault()): Date? {
+//        return try {
+//            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+//            val ldt = LocalDateTime.parse(input, formatter)
+//            Date.from(ldt.atZone(zone).toInstant())
+//        } catch (e: Exception) {
+//            null
+//        }
+//    }
 }
