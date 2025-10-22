@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.material)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
@@ -87,6 +88,14 @@ dependencies {
     implementation(libs.realtime.kt)
     implementation("io.ktor:ktor-client-android:2.3.2")
     implementation("io.ktor:ktor-client-core:2.3.2")
+
+    // Voyager Navigation
+    implementation(libs.voyager.navigator)
+    implementation(libs.voyager.tab.navigator)
+
+    // Android Material UI
+    implementation(libs.material3)
+    implementation(libs.androidx.material.icons.extended)
 }
 
 tasks.withType<Test> {
