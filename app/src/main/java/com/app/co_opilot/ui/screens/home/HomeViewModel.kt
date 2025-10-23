@@ -1,4 +1,4 @@
 package com.app.co_opilot.ui.screens.home
 
-class DiscoverViewModel {
+class HomeViewModel {
 }

@@ -23,9 +23,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
-import com.app.co_opilot.ui.screens.home.DiscoverScreen
+import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
+import com.app.co_opilot.AuthTab
+import com.app.co_opilot.HomeTab
 
 class AuthScreen: Screen {
 
@@ -33,7 +33,7 @@ class AuthScreen: Screen {
     override fun Content() {
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
-        val navigator = LocalNavigator.currentOrThrow
+        val tabNavigator = LocalTabNavigator.current
 
         Column(
             modifier = Modifier
@@ -78,7 +78,7 @@ class AuthScreen: Screen {
             )
 
             Button(
-                onClick = { android.util.Log.d("AuthScreen", "printed here"); navigator.push(DiscoverScreen()) },
+                onClick = { tabNavigator.current = HomeTab },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
