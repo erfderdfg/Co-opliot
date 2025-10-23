@@ -1,4 +1,4 @@
-package com.app.co_opilot.ui.screens.chats
+package com.app.co_opilot.ui.screens.home
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,13 +12,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
+import com.app.co_opilot.AuthTab
 
-class ChatsListScreen: Screen {
+class HomeScreen: Screen {
     @Composable
     override fun Content() {
+        val tabNavigator = LocalTabNavigator.current;
         // use global auth session/state, redirect to auth page if needed
-        Column {
-            Text(text = "TESTING Chats SCREEN", fontSize = 30.sp)
-        }
+        Text(text = "TESTING HOME SCREEN", fontSize = 30.sp)
     }
 }
