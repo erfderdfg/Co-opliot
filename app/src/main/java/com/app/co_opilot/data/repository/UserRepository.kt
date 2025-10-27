@@ -2,6 +2,7 @@ package com.app.co_opilot.data.repository
 
 import android.util.Log
 import com.app.co_opilot.data.SupabaseClient
+import com.app.co_opilot.data.provider.SupabaseProvider
 import com.app.co_opilot.domain.User
 import com.app.co_opilot.domain.profile.AcademicProfile
 import com.app.co_opilot.domain.profile.BasicProfile
@@ -32,12 +33,11 @@ data class UserDto(
     val social_profile: SocialProfile? = null
 )
 private const val TAG = "UserRepository"
-open class UserRepository {
-    private val supabase = SupabaseClient.client
+open class UserRepository(val supabase : SupabaseProvider) {
 
     suspend fun getUser(userId: String): User? {
         return try {
-            val result = supabase.postgrest["users"]
+            val result = supabase.client.postgrest["users"]
                 .select {
                     filter {
                         eq("id", userId)
@@ -76,7 +76,7 @@ open class UserRepository {
             socialProfile = socialProfile
         )
 
-        supabase.postgrest["users"].insert(user)
+        supabase.client.postgrest["users"].insert(user)
     }
 
     suspend fun updateUserProfiles(
@@ -102,7 +102,7 @@ open class UserRepository {
                 socialProfile = social ?: currentUser.socialProfile
             )
 
-            supabase.postgrest["users"]
+            supabase.client.postgrest["users"]
                 .update(updatedUser) {
                     filter {
                         "id" to userId
@@ -138,7 +138,7 @@ open class UserRepository {
                 socialProfile = currentUser.socialProfile
             )
 
-            supabase.postgrest["users"]
+            supabase.client.postgrest["users"]
                 .update(updatedUser) {
                     filter {
                         eq("id", userId)
@@ -154,7 +154,7 @@ open class UserRepository {
 
     suspend fun deleteUser(userId: String): Boolean {
         return try {
-            supabase.postgrest["users"].delete {
+            supabase.client.postgrest["users"].delete {
                 filter {
                     eq("id", userId)
                 }
@@ -169,7 +169,7 @@ open class UserRepository {
 
     suspend fun getAllUsers(): List<User> {
         return try {
-            val results = supabase.postgrest["users"]
+            val results = supabase.client.postgrest["users"]
                 .select()
                 .decodeList<User>()
 

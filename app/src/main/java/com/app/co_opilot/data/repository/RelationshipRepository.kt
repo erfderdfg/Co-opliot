@@ -1,5 +1,6 @@
 package com.app.co_opilot.data.repository
 
+import com.app.co_opilot.data.provider.SupabaseProvider
 import com.app.co_opilot.data.SupabaseClient
 import com.app.co_opilot.domain.Relationship
 import com.app.co_opilot.domain.enums.RelationshipStatus
@@ -7,26 +8,24 @@ import io.github.jan.supabase.postgrest.postgrest
 import java.util.*
 
 
-class RelationshipRepository {
-
-    private val supabase = SupabaseClient.client
+open class RelationshipRepository(val supabase : SupabaseProvider) {
 
     suspend fun getAllRelationships(): List<Relationship> {
         return try {
-            supabase.postgrest["relationships"].select().decodeList<Relationship>()
+            supabase.client.postgrest["relationships"]
+                .select()
+                .decodeList<Relationship>()
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
     }
 
-    suspend fun getRelationshipsForUser(userId: String): List<Relationship> {
+    suspend fun getRelationships(userId: String): List<Relationship> {
         return try {
-            supabase.postgrest["relationships"]
+            supabase.client.postgrest["relationships"]
                 .select {
-                    filter {
-                        "user_one_id" to userId
-                    }
+                    filter { eq("user_one_id", userId) }
                 }
                 .decodeList<Relationship>()
         } catch (e: Exception) {
@@ -45,7 +44,7 @@ class RelationshipRepository {
                 createdAt = Date().toInstant().toString(),
                 updatedAt = Date().toInstant().toString()
             )
-            supabase.postgrest["relationships"].insert(listOf(relationship))
+            supabase.client.postgrest["relationships"].insert(listOf(relationship))
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -55,11 +54,11 @@ class RelationshipRepository {
 
     suspend fun findRelationship(userOneId: String, userTwoId: String): Relationship? {
         return try {
-            supabase.postgrest["relationships"]
+            supabase.client.postgrest["relationships"]
                 .select {
                     filter {
-                        "user_one_id" to userOneId
-                        "user_two_id" to userTwoId
+                        eq("user_one_id", userOneId)
+                        eq("user_two_id", userTwoId)
                     }
                 }
                 .decodeList<Relationship>()
@@ -72,7 +71,7 @@ class RelationshipRepository {
 
     suspend fun deleteRelationship(id: String): Boolean {
         return try {
-            supabase.postgrest["users"].delete {
+            supabase.client.postgrest["users"].delete {
                 filter {
                     eq("id", id)
                 }
