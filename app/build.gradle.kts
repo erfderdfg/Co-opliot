@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.material)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
@@ -91,6 +92,14 @@ dependencies {
     implementation(libs.ktor.client.core)
 
     implementation(libs.kotlinx.serialization.json)
+
+    // Voyager Navigation
+    implementation(libs.voyager.navigator)
+    implementation(libs.voyager.tab.navigator)
+
+    // Android Material UI
+    implementation(libs.material3)
+    implementation(libs.androidx.material.icons.extended)
 }
 
 tasks.withType<Test> {
