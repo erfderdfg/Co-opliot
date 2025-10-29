@@ -26,7 +26,8 @@ class ChatRepository( /* Inject remote API (Supabase DB Client) service */ ) {
         val newChat = Chat(
             id = UUID.randomUUID().toString(),
             userOneId = userOneId,
-            userTwoId = userTwoId
+            userTwoId = userTwoId,
+            createdAt = Date().toString()
         )
 
         chats.add(newChat)
