@@ -1,6 +1,5 @@
 package com.app.co_opilot.data.repository
 
-import com.app.co_opilot.data.dto.MessageDto
 import com.app.co_opilot.data.provider.SupabaseProvider
 import com.app.co_opilot.domain.Message
 import io.github.jan.supabase.postgrest.postgrest
@@ -40,12 +39,12 @@ open class MessageRepository(val supabase : SupabaseProvider) {
 
     suspend fun sendMessage(chatId: String, senderId: String, text: String): Boolean {
         return try {
-            val dto = MessageDto(
+            val dto = Message(
                 id = UUID.randomUUID().toString(),
-                chat_id = chatId,
-                sender_id = senderId,
+                chatId = chatId,
+                senderId = senderId,
                 message = text,
-                sent_at = Date().toInstant().toString()
+                sentAt = Date().toInstant().toString()
             )
             supabase.client.postgrest["messages"].insert(listOf(dto))
             true

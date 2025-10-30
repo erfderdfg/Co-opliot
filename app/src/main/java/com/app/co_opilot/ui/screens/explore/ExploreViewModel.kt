@@ -14,6 +14,7 @@ import com.app.co_opilot.domain.profile.CareerProfile
 import com.app.co_opilot.domain.profile.SocialProfile
 import com.app.co_opilot.service.ActivityService
 import com.app.co_opilot.service.UserService
+import java.time.Instant
 import java.util.Date
 
 val LocalExploreViewModel = staticCompositionLocalOf<ExploreViewModel> {
@@ -29,8 +30,8 @@ data class ExploreViewModel(val userService: UserService, val activityService: A
             "Tommy",
             "tommy@gmail.com",
             null,
-            Date().toString(),
-            Date().toString(),
+            Instant.now().toString(),
+            Instant.now().toString(),
             BasicProfile(),
             AcademicProfile(
                 faculty = "Math",
@@ -59,8 +60,8 @@ data class ExploreViewModel(val userService: UserService, val activityService: A
             "Benny",
             "benny@gmail.com",
             null,
-            Date().toString(),
-            Date().toString(),
+            Instant.now().toString(),
+            Instant.now().toString(),
             BasicProfile(),
             AcademicProfile(
                 faculty = "Math",
@@ -101,10 +102,10 @@ data class ExploreViewModel(val userService: UserService, val activityService: A
             description = "Get some bubble tea at the alley together",
             title = "Bubble tea",
             sections = Sections.SOCIAL,
-            createdAt = Date(),
-            updatedAt = Date(),
-            startAt = Date(),
-            endAt = Date(),
+            createdAt = Instant.now().toString(),
+            updatedAt = Instant.now().toString(),
+            startAt = Instant.now().toString(),
+            endAt = Instant.now().toString(),
             tags = mutableListOf("#social", "#alley", "#meetup")
         ), Activity(
             id = "activity_id2",
@@ -112,10 +113,10 @@ data class ExploreViewModel(val userService: UserService, val activityService: A
             description = "Get some bubble tea at the alley together",
             title = "Bubble tea",
             sections = Sections.SOCIAL,
-            createdAt = Date(),
-            updatedAt = Date(),
-            startAt = Date(),
-            endAt = Date(),
+            createdAt = Instant.now().toString(),
+            updatedAt = Instant.now().toString(),
+            startAt = Instant.now().toString(),
+            endAt = Instant.now().toString(),
             tags = mutableListOf("#social", "#alley", "#meetup")
         ))
     }

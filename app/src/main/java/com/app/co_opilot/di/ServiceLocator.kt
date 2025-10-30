@@ -14,10 +14,10 @@ object ServiceLocator {
     }
 
     val activityService by lazy {
-        ActivityService(ActivityRepository())
+        ActivityService(ActivityRepository(SupabaseClient))
     }
 
     val chatService by lazy {
-        ChatService(ChatRepository())
+        ChatService(ChatRepository(SupabaseClient))
     }
 }
