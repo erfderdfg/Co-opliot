@@ -67,7 +67,7 @@ import java.util.Date
 class ChatsListScreen: Screen {
     @Composable
     fun ChatCard(user2: User, lstMsg: Message?) {
-        val userId = "id1";
+        val userId = "id1" // should be dynamic
         val lastSentAt = if (lstMsg != null) formatDateDisplay(parseDate(lstMsg.sentAt)) else ""
         val tabNavigator = LocalTabNavigator.current
         Card(
@@ -126,36 +126,36 @@ class ChatsListScreen: Screen {
             isLoading = true
 //            friends = viewModel.chatService.loadFriends(userId) // suspend call to chatService
             friends = listOf(
-                User(
-                    "id",
-                    "Tommy",
-                    "tommy@gmail.com",
-                    null,
-                    Instant.now().toString(),
-                    Instant.now().toString(),
-                    BasicProfile(),
-                    AcademicProfile(
-                        faculty = "Math",
-                        major = mutableListOf("Computer Science", "Pure Math"),
-                        academicyear = 3,
-                        school = "University of Waterloo",
-                        gpa = 92.0
-                    ),
-                    CareerProfile(
-                        skills = mutableListOf("Web Dev", "AI", "System Engineering"),
-                        industry = "Software",
-                        yearsOfExp = 1,
-                        pastInternships = mutableListOf("Google", "Amazon", "Meta")
-                    ),
-                    SocialProfile(
-                        linkedin_url = "https://www.linkedin.com/in/tommypang04/",
-                        instagram_username = "tommypang04",
-                        x_url = "https://x.com/elonmusk",
-                        interests = mutableListOf("Sports", "Science", "Music"),
-                        hobbies = mutableListOf("Hiking", "Badminton", "Guitar"),
-                        mbti = "INTJ"
-                    )
-                ),
+//                User(
+//                    "id",
+//                    "Tommy",
+//                    "tommy@gmail.com",
+//                    null,
+//                    Instant.now().toString(),
+//                    Instant.now().toString(),
+//                    BasicProfile(),
+//                    AcademicProfile(
+//                        faculty = "Math",
+//                        major = mutableListOf("Computer Science", "Pure Math"),
+//                        academicyear = 3,
+//                        school = "University of Waterloo",
+//                        gpa = 92.0
+//                    ),
+//                    CareerProfile(
+//                        skills = mutableListOf("Web Dev", "AI", "System Engineering"),
+//                        industry = "Software",
+//                        yearsOfExp = 1,
+//                        pastInternships = mutableListOf("Google", "Amazon", "Meta")
+//                    ),
+//                    SocialProfile(
+//                        linkedin_url = "https://www.linkedin.com/in/tommypang04/",
+//                        instagram_username = "tommypang04",
+//                        x_url = "https://x.com/elonmusk",
+//                        interests = mutableListOf("Sports", "Science", "Music"),
+//                        hobbies = mutableListOf("Hiking", "Badminton", "Guitar"),
+//                        mbti = "INTJ"
+//                    )
+//                ),
                 User( // change this to actual supabase auth session user
                     "id2",
                     "Benny",
@@ -200,7 +200,7 @@ class ChatsListScreen: Screen {
                         "id",
                         "chat_id",
                         "snd_id",
-                        "Hello!",
+                        "NGMI NGMI NGMI",
                         Instant.now().toString()
                     )
                 )
