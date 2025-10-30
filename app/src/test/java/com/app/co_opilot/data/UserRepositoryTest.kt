@@ -1,148 +1,49 @@
-//package com.app.co_opilot.data
-//
+//import com.app.co_opilot.data.SupabaseClient
 //import com.app.co_opilot.data.provider.SupabaseProvider
 //import com.app.co_opilot.data.repository.UserRepository
 //import com.app.co_opilot.domain.User
-//import com.app.co_opilot.domain.profile.*
+//import com.app.co_opilot.domain.profile.AcademicProfile
+//import com.app.co_opilot.domain.profile.BasicProfile
+//import com.app.co_opilot.domain.profile.CareerProfile
+//import com.app.co_opilot.domain.profile.SocialProfile
 //import io.github.jan.supabase.postgrest.Postgrest
 //import io.github.jan.supabase.postgrest.postgrest
-//import kotlinx.coroutines.runBlocking
-//import org.junit.Test
-//import org.junit.runner.RunWith
-//import org.mockito.junit.MockitoJUnitRunner
-//import org.mockito.kotlin.*
-//import java.util.*
+//import io.github.jan.supabase.postgrest.query.PostgrestQueryBuilder
+//import org.junit.Before
+//import org.mockito.Mock
+//import org.mockito.MockitoAnnotations
+//import org.mockito.kotlin.whenever
 //
-//@RunWith(MockitoJUnitRunner::class)
+//@OptIn(ExperimentalCoroutinesApi::class)
 //class UserRepositoryTest {
 //
-//    private val mockSupabaseProvider = mock<SupabaseProvider>()
-//    private val mockClient = mock<io.github.jan.supabase.SupabaseClient>()
-//    private val mockPostgrest = mock<Postgrest>()
-//    private val repo: UserRepository
+//    private lateinit var repository: UserRepository
 //
-//    init {
-//        whenever(mockSupabaseProvider.client).thenReturn(mockClient)
-//        whenever(mockClient.postgrest).thenReturn(mockPostgrest)
-//        repo = UserRepository(mockSupabaseProvider)
+//    @Mock lateinit var provider: SupabaseProvider
+//    @Mock lateinit var client: SupabaseClient
+//    @Mock lateinit var postgrest: Postgrest
+//    @Mock lateinit var table: PostgrestQueryBuilder
+//
+//    private val testUser = User(
+//        id = "123",
+//        name = "Benny",
+//        email = "test@example.com",
+//        avatarUrl = "url",
+//        createdAt = "2024-01-01",
+//        updatedAt = "2024-01-01",
+//        basicProfile = BasicProfile(),
+//        academicProfile = AcademicProfile(),
+//        careerProfile = CareerProfile(),
+//        socialProfile = SocialProfile()
+//    )
+//
+//    @Before
+//    fun setup() {
+//        MockitoAnnotations.openMocks(this)
+//
+//        whenever(provider.client).thenReturn(client)
+//        whenever(client.postgrest).thenReturn(postgrest)
+//        whenever(postgrest["users"]).thenReturn(table)
+//
+//        repository = UserRepository(provider)
 //    }
-//
-//    // region 🔹 CREATE USER
-//    @Test
-//    fun `createUser calls postgrest insert once`() = runBlocking {
-//        val id = UUID.randomUUID().toString()
-//        val user = User(
-//            id = id,
-//            name = "Test User",
-//            email = "test@example.com",
-//            avatarUrl = null,
-//            createdAt = Date().toString(),
-//            updatedAt = Date().toString(),
-//            basicProfile = BasicProfile(),
-//            academicProfile = AcademicProfile(),
-//            careerProfile = CareerProfile(),
-//            socialProfile = SocialProfile()
-//        )
-//
-//        // mock insert table call
-//        val mockTable = mock<Postgrest.Table>()
-//        whenever(mockPostgrest["users"]).thenReturn(mockTable)
-//        whenever(mockTable.insert(any<User>())).thenReturn(Unit)
-//
-//        repo.createUser(
-//            id = id,
-//            name = user.name,
-//            email = user.email,
-//            avatarUrl = user.avatarUrl,
-//            createdAt = Date(),
-//            updatedAt = Date(),
-//            basicProfile = user.basicProfile,
-//            academicProfile = user.academicProfile,
-//            careerProfile = user.careerProfile,
-//            socialProfile = user.socialProfile
-//        )
-//
-//        verify(mockPostgrest)["users"]
-//        verify(mockTable, times(1)).insert(any<User>())
-//    }
-//    // endregion
-//
-//    // region 🔹 READ USER
-//    @Test
-//    fun `getUser calls postgrest select once`() = runBlocking {
-//        val id = UUID.randomUUID().toString()
-//        val mockTable = mock<Postgrest.Table>()
-//
-//        whenever(mockPostgrest["users"]).thenReturn(mockTable)
-//        whenever(
-//            mockTable.select(any())
-//        ).thenReturn(mock()) // stub Postgrest query result
-//        // You can stub decodeSingle<User>() if needed
-//
-//        repo.getUser(id)
-//
-//        verify(mockPostgrest)["users"]
-//        verify(mockTable, times(1)).select(any())
-//    }
-//    // endregion
-//
-//    // region 🔹 READ ALL USERS
-//    @Test
-//    fun `getAllUsers calls postgrest select once`() = runBlocking {
-//        val mockTable = mock<Postgrest.Table>()
-//        whenever(mockPostgrest["users"]).thenReturn(mockTable)
-//        whenever(mockTable.select()).thenReturn(mock())
-//
-//        repo.getAllUsers()
-//
-//        verify(mockPostgrest)["users"]
-//        verify(mockTable, times(1)).select()
-//    }
-//    // endregion
-//
-//    // region 🔹 UPDATE USER
-//    @Test
-//    fun `updateUser calls postgrest update once`() = runBlocking {
-//        val id = UUID.randomUUID().toString()
-//        val mockTable = mock<Postgrest.Table>()
-//        whenever(mockPostgrest["users"]).thenReturn(mockTable)
-//        whenever(mockTable.update(any<User>(), any())).thenReturn(Unit)
-//
-//        // Mock getUser call internally
-//        val mockUser = User(
-//            id = id,
-//            name = "Old",
-//            email = "old@example.com",
-//            avatarUrl = null,
-//            createdAt = Date().toString(),
-//            updatedAt = Date().toString(),
-//            basicProfile = BasicProfile(),
-//            academicProfile = AcademicProfile(),
-//            careerProfile = CareerProfile(),
-//            socialProfile = SocialProfile()
-//        )
-//        val spyRepo = spy(repo)
-//        doReturn(mockUser).whenever(spyRepo).getUser(id)
-//
-//        spyRepo.updateUser(id, name = "Updated User")
-//
-//        verify(mockPostgrest)["users"]
-//        verify(mockTable, times(1)).update(any<User>(), any())
-//    }
-//    // endregion
-//
-//    // region 🔹 DELETE USER
-//    @Test
-//    fun `deleteUser calls postgrest delete once`() = runBlocking {
-//        val id = UUID.randomUUID().toString()
-//        val mockTable = mock<Postgrest.Table>()
-//        whenever(mockPostgrest["users"]).thenReturn(mockTable)
-//        whenever(mockTable.delete(any())).thenReturn(Unit)
-//
-//        repo.deleteUser(id)
-//
-//        verify(mockPostgrest)["users"]
-//        verify(mockTable, times(1)).delete(any())
-//    }
-//    // endregion
-//}
