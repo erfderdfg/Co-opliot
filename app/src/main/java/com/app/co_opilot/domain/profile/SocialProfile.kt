@@ -8,4 +8,7 @@ data class SocialProfile (
     val mbti : String ? = null,
     val interests: List<String> = emptyList(),
     val hobbies: List<String> = emptyList(),
+    val instagram_username : String? = null,
+    val x_url: String? = null,
+    val linkedin_url : String? = null
 )
