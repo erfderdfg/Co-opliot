@@ -1,67 +1,87 @@
 package com.app.co_opilot.data.repository
 
+import com.app.co_opilot.data.provider.SupabaseProvider
 import com.app.co_opilot.domain.Chat
 import com.app.co_opilot.domain.Message
-import com.app.co_opilot.domain.User
-import java.util.Date
-import java.util.UUID
+import io.github.jan.supabase.postgrest.postgrest
+import java.util.*
 
-// ChatService owns it
-class ChatRepository( /* Inject remote API (Supabase DB Client) service */ ) {
-
-    // TODO: temporary data, modify when connecting to Supabase
-    private var chats = mutableListOf<Chat>()
-    private var messages = mutableListOf<Message>()
+open class ChatRepository(val supabase : SupabaseProvider) {
 
     suspend fun initSession(userOneId: String, userTwoId: String): Chat {
-        val existingChat = chats.find {
-            (it.userOneId == userOneId && it.userTwoId == userTwoId) ||
-                    (it.userOneId == userTwoId && it.userTwoId == userOneId)
+        return try {
+            val existing = supabase.client.postgrest["chats"]
+                .select {
+                    filter {
+                        "user_one_id" to userOneId
+                        "user_two_id" to userTwoId
+                    }
+                }
+                .decodeList<Chat>()
+                .firstOrNull()
+
+            if (existing != null) existing
+
+
+            val newChat = Chat(
+                id = UUID.randomUUID().toString(),
+                userOneId = userOneId,
+                userTwoId = userTwoId,
+                createdAt = Date().toInstant().toString()
+            )
+            supabase.client.postgrest["chats"].insert(listOf(newChat))
+            newChat
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw IllegalStateException("Failed to initialize chat session", e)
         }
-
-        if (existingChat != null) {
-            return existingChat
-        }
-
-        val newChat = Chat(
-            id = UUID.randomUUID().toString(),
-            userOneId = userOneId,
-            userTwoId = userTwoId,
-            createdAt = Date().toString()
-        )
-
-        chats.add(newChat)
-        return newChat
     }
-
-    suspend fun sendMessage(senderId: String, chatId: String, message: String): Boolean {
-        val chat = chats.find { it.id == chatId } ?: return false
-
-        val message = Message(
-            id = UUID.randomUUID().toString(),
-            chatId = chat.id,
-            senderId = senderId,
-            message = message,
-            sentAt = Date().toString()
-        )
-
-        messages.add(message)
-        return true
-    }
-
 
     suspend fun getChat(userOneId: String, userTwoId: String): Chat {
-        val chat = chats.find { (it.userOneId == userOneId && it.userTwoId == userTwoId) ||
-                            (it.userOneId == userTwoId && it.userTwoId == userOneId) }
-
-        if (chat == null) {
-            throw IllegalArgumentException("Chat Session does not exist")
+        return try {
+            supabase.client.postgrest["chats"]
+                .select {
+                    filter {
+                        eq("user_one_id", userOneId)
+                        eq("user_two_id", userTwoId)
+                    }
+                }
+                .decodeSingle<Chat>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw IllegalStateException("Failed to initialize chat session", e)
         }
+    }
 
-        return chat
+    suspend fun sendMessage(senderId: String, chatId: String, content: String): Boolean {
+        return try {
+            val message = Message(
+                id = UUID.randomUUID().toString(),
+                chatId = chatId,
+                senderId = senderId,
+                message = content,
+                sentAt = Date().toInstant().toString()
+            )
+            supabase.client.postgrest["messages"].insert(listOf(message))
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     suspend fun getChatHistory(chatId: String): List<Message> {
-        return messages.filter { it.chatId == chatId }
+        return try {
+            supabase.client.postgrest["messages"]
+                .select {
+                    filter {
+                        eq("chat_id", chatId)
+                    }
+                }
+                .decodeList<Message>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 }
