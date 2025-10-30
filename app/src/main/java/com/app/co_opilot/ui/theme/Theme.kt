@@ -13,11 +13,11 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF6750A4),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFEADDFF),
-    secondary = Color(0xFF625B71),
-    secondaryContainer = Color(0xFFE8DEF8),
+    primary = Color(0xB8FFC107),
+    onPrimary = Color.Black,
+    primaryContainer = Color(0xFFFFFBFE),
+    secondary = Color(0xFFFFEB3B),
+    secondaryContainer = Color(0xD9FFC107),
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
     surfaceVariant = Color(0xFFE7E0EC)
@@ -36,7 +36,7 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun CoopilotTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme

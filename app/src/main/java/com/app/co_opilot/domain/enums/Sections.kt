@@ -1,12 +1,11 @@
 package com.app.co_opilot.domain.enums
 
 import com.app.co_opilot.R
-import java.io.InvalidObjectException
 
 enum class Sections(val value: String) {
     // These are the 3 built-in categories / sections
     ACADEMICS("academics"),
-    COOP("coop"),
+    COOP("coop.png"),
     SOCIAL("social");
 
     override fun toString(): String = value
@@ -14,7 +13,7 @@ enum class Sections(val value: String) {
     fun toImageResourceId(): Int = run {
         when (value) {
             "academics" -> R.drawable.academic
-            "coop" -> R.drawable.coop
+            "coop.png" -> R.drawable.coop
             "social" -> R.drawable.social
             else -> {
                 println("should not happen")

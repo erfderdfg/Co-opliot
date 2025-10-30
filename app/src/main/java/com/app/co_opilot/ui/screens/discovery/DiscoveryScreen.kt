@@ -1,9 +1,12 @@
 package com.app.co_opilot.ui.screens.discovery
 
 import android.widget.Space
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,20 +14,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubble
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Stars
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -39,6 +48,9 @@ import com.app.co_opilot.R
 import com.app.co_opilot.domain.enums.Sections
 import com.app.co_opilot.ui.screens.auth.AuthScreen
 import com.app.co_opilot.ui.screens.explore.ExploreScreen
+import com.app.co_opilot.ui.theme.CoopilotTheme
+import com.app.co_opilot.ui.components.ScreenHeader
+import com.app.co_opilot.ui.screens.leaderboard.LeaderboardScreen
 
 class DiscoveryScreen: Screen {
     @Composable
@@ -49,9 +61,9 @@ class DiscoveryScreen: Screen {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .height(170.dp)
-                .clip(RoundedCornerShape(16.dp))
+                .padding(vertical = 10.dp)
+                .height(190.dp)
+                .clip(RoundedCornerShape(12.dp))
                 .background(Color(0xFFF6F1FA))
                 .clickable {
                     ExploreScreen.NavStates.pendingExploreSection.value = sections
@@ -62,35 +74,53 @@ class DiscoveryScreen: Screen {
                 painter = painterResource(id = imageResId),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
             )
 
-            Column(
+            androidx.compose.foundation.layout.Row(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .background(Color.White.copy(alpha = 0.85f))
+                    .background(MaterialTheme.colorScheme.primary)
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(title, fontSize = 18.sp)
-                Text(description, fontSize = 13.sp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(description, fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimary)
+                }
+                Image(
+                    painter = rememberVectorPainter(Icons.Outlined.ChevronRight),
+                    contentDescription = null
+                )
             }
         }
     }
 
     @Composable
     fun LeadershipCard() {
+        val navigator = cafe.adriel.voyager.navigator.LocalNavigator.currentOrThrow
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(90.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFFF7F0FF))
-                .padding(16.dp)
+                .height(72.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .clipToBounds()
+                .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                .padding(14.dp)
+                .clickable{ navigator.push(LeaderboardScreen()) }
+
         ) {
-            Column {
-                Text("Leaderboard", fontSize = 20.sp)
-                Text("View the global leaderboard", fontSize = 12.sp)
+            androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Leaderboard", fontSize = 20.sp)
+                    Text("View the global leaderboard", fontSize = 12.sp)
+                }
+                Image(
+                    painter = rememberVectorPainter(Icons.Outlined.ChevronRight),
+                    contentDescription = null
+                )
             }
         }
     }
@@ -98,18 +128,23 @@ class DiscoveryScreen: Screen {
     @Composable
     override fun Content() {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier
+                .padding(horizontal = 32.dp, vertical = 40.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
-            Text(text = "Discovery", fontSize = 32.sp, modifier = Modifier.padding(top = 16.dp))
-            Text(text = "Find someone to share the grind with.", fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp, bottom = 20.dp))
+            ScreenHeader(
+                title = "Discovery",
+                subtitle = "Find someone to share the grind with.",
+                modifier = Modifier
+            )
 
             LeadershipCard()
 
-            SectionCard("Co-op Buddies", "Find best matches to achieve career goals together", Sections.COOP)
+            SectionCard("Co-op Buddies", "Find matches to achieve career goals together", Sections.COOP)
 
-            SectionCard("Academic Buddies", "Find best matches to study together", Sections.ACADEMICS)
+            SectionCard("Academic Buddies", "Find matches to study together", Sections.ACADEMICS)
 
-            SectionCard("Social Buddies", "Find best matches to social & hangout", Sections.SOCIAL)
+            SectionCard("Social Buddies", "Find matches to social & hangout", Sections.SOCIAL)
 
             Spacer(Modifier.height(60.dp))
         }
