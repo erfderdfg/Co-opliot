@@ -23,6 +23,7 @@ import com.app.co_opilot.ui.screens.auth.AuthScreen
 import com.app.co_opilot.ui.screens.chats.ChatsListScreen
 import com.app.co_opilot.ui.screens.discovery.DiscoveryScreen
 import com.app.co_opilot.ui.screens.profile.ProfileScreen
+import com.app.co_opilot.ui.theme.CoopilotTheme
 
 class CoopilotApplication : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +37,7 @@ class CoopilotApplication : ComponentActivity() {
 
 @Composable
 fun App() {
-    MaterialTheme {
+    CoopilotTheme {
         TabNavigator(AuthScreen.AuthTab) {
             Scaffold(
                 bottomBar = {

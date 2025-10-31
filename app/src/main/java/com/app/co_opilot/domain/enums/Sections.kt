@@ -1,7 +1,6 @@
 package com.app.co_opilot.domain.enums
 
 import com.app.co_opilot.R
-import java.io.InvalidObjectException
 
 enum class Sections(val value: String) {
     // These are the 3 built-in categories / sections
