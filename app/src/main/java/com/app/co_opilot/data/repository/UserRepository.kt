@@ -19,19 +19,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 
-@Serializable
-data class UserDto(
-    val id: String,
-    val name: String,
-    val email: String,
-    val avatar_url: String? = null,
-    val created_at: String? = null,
-    val updated_at: String? = null,
-    val basic_profile: BasicProfile? = null,
-    val academic_profile: AcademicProfile? = null,
-    val career_profile: CareerProfile? = null,
-    val social_profile: SocialProfile? = null
-)
 private const val TAG = "UserRepository"
 open class UserRepository(val supabase : SupabaseProvider) {
 
@@ -179,40 +166,4 @@ open class UserRepository(val supabase : SupabaseProvider) {
             emptyList()
         }
     }
-
-//    private fun UserDto.toDomain(): User {
-//        fun parseMaybeTimezoneAware(input: String?): Date? {
-//            if (input == null) return null
-//            // simple check: contains 'Z' or an offset like "+02:00" use Instant.parse
-//            val hasZone = input.endsWith("Z", ignoreCase = true) || input.matches(".*[+-]\\d{2}:?\\d{2}\$".toRegex())
-//            return if (hasZone) {
-//                try { Date.from(Instant.parse(input)) } catch (e: Exception) { null }
-//            } else {
-//                parseTimestampNoZone(input, ZoneId.of("UTC"))
-//            }
-//        }
-//
-//        return User(
-//            id = id,
-//            name = name,
-//            email = email,
-//            avatarUrl = avatar_url,
-//            createdAt = parseMaybeTimezoneAware(created_at) ?: Date(),
-//            updatedAt = parseMaybeTimezoneAware(updated_at) ?: Date(),
-//            basicProfile = basic_profile ?: BasicProfile(),
-//            academicProfile = academic_profile ?: AcademicProfile(),
-//            careerProfile = career_profile ?: CareerProfile(),
-//            socialProfile = social_profile ?: SocialProfile()
-//        )
-//    }
-//
-//    fun parseTimestampNoZone(input: String, zone: ZoneId = ZoneId.systemDefault()): Date? {
-//        return try {
-//            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-//            val ldt = LocalDateTime.parse(input, formatter)
-//            Date.from(ldt.atZone(zone).toInstant())
-//        } catch (e: Exception) {
-//            null
-//        }
-//    }
 }
