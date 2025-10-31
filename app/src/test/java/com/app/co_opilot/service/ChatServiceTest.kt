@@ -1,10 +1,19 @@
 package com.app.co_opilot.service
 
 import com.app.co_opilot.data.repository.ChatRepository
+import com.app.co_opilot.domain.Chat
+import com.app.co_opilot.domain.Message
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import java.util.Date
 
 class ChatServiceTest {
 
@@ -13,69 +22,87 @@ class ChatServiceTest {
 
     @Before
     fun setup() {
-        chatRepo = ChatRepository()
+        chatRepo = mock()
         chatService = ChatService(chatRepo)
     }
 
     @Test
-    fun `sendMessage should create new chat if not exists`() = runBlocking {
-        val senderId = "user1"
-        val receiverId = "user2"
+    fun `sendMessage should create new chat if not exists`() {
+        runBlocking {
+            val senderId = "user1"
+            val receiverId = "user2"
+            val createdChat = Chat("chat123", senderId, receiverId, Clock.System.now().toString() )
 
-        val success = chatService.sendMessage(senderId, receiverId, "Hello!")
+            whenever(chatRepo.getChat(senderId, receiverId))
+                .thenThrow(IllegalArgumentException())
+            whenever(chatRepo.initSession(senderId, receiverId))
+                .thenReturn(createdChat)
+            whenever(chatRepo.sendMessage(senderId, createdChat.id, "Hello!"))
+                .thenReturn(true)
 
-        assertTrue(success)
+            val result = chatService.sendMessage(senderId, receiverId, "Hello!")
 
-        // Ensure chat was created
-        val chat = chatRepo.getChat(senderId, receiverId)
-        assertNotNull(chat)
-
-        // Ensure message was added
-        val messages = chatRepo.getChatHistory(chat.id)
-        assertEquals(1, messages.size)
-        assertEquals("Hello!", messages.first().message)
+            assertTrue(result)
+            verify(chatRepo).initSession(senderId, receiverId)
+            verify(chatRepo).sendMessage(senderId, createdChat.id, "Hello!")
+        }
     }
 
     @Test
-    fun `sendMessage should append message to existing chat`() = runBlocking {
-        val senderId = "user1"
-        val receiverId = "user2"
+    fun `sendMessage should append message to existing chat`() {
+        runBlocking {
+            val senderId = "user1"
+            val receiverId = "user2"
+            val chat = Chat("chat123", senderId, receiverId, Clock.System.now().toString() )
 
-        // Initialize chat manually first
-        val chat = chatRepo.initSession(senderId, receiverId)
+            whenever(chatRepo.getChat(any(), any())).thenReturn(chat)
+            whenever(chatRepo.sendMessage(any(), any(), any())).thenReturn(true)
 
-        // Send two messages
-        chatService.sendMessage(senderId, receiverId, "Hi there!")
-        chatService.sendMessage(receiverId, senderId, "Hey!")
+            chatService.sendMessage(senderId, receiverId, "Hi there!")
+            chatService.sendMessage(receiverId, senderId, "Hey!")
 
-        val messages = chatRepo.getChatHistory(chat.id)
-
-        assertEquals(2, messages.size)
-        assertEquals("Hi there!", messages[0].message)
-        assertEquals("Hey!", messages[1].message)
+            verify(chatRepo).sendMessage(senderId, chat.id, "Hi there!")
+            verify(chatRepo).sendMessage(receiverId, chat.id, "Hey!")
+        }
     }
 
     @Test
-    fun `loadChatHistory should return empty list if chat newly created`() = runBlocking {
-        val userOne = "a"
-        val userTwo = "b"
+    fun `loadChatHistory should return empty list if chat newly created`() {
+        runBlocking {
+            val u1 = "a"
+            val u2 = "b"
+            val newChat = Chat("chat123", u1, u2, Clock.System.now().toString() )
 
-        val messages = chatService.loadChatHistory(userOne, userTwo)
-        assertTrue(messages.isEmpty())
+            whenever(chatRepo.getChat(u1, u2)).thenThrow(IllegalArgumentException())
+            whenever(chatRepo.initSession(u1, u2)).thenReturn(newChat)
+            whenever(chatRepo.getChatHistory(newChat.id)).thenReturn(emptyList())
+
+            val result = chatService.loadChatHistory(u1, u2)
+
+            assertTrue(result.isEmpty())
+            verify(chatRepo).initSession(u1, u2)
+        }
     }
 
     @Test
-    fun `loadChatHistory should return existing messages`() = runBlocking {
-        val userOne = "alice"
-        val userTwo = "bob"
+    fun `loadChatHistory should return existing messages`() {
+        runBlocking {
+            val u1 = "alice"
+            val u2 = "bob"
+            val chat = Chat("chat123", u1, u2, Clock.System.now().toString() )
+            val msgs = listOf(
+                Message("m1", chat.id, u1, "Hello Bob!",  Clock.System.now().toString()),
+                Message("m2", chat.id, u2, "Hey Alice!", Clock.System.now().toString())
+            )
 
-        val chat = chatRepo.initSession(userOne, userTwo)
-        chatRepo.sendMessage(userOne, chat.id, "Hello Bob!")
-        chatRepo.sendMessage(userTwo, chat.id, "Hey Alice!")
+            whenever(chatRepo.getChat(u1, u2)).thenReturn(chat)
+            whenever(chatRepo.getChatHistory(chat.id)).thenReturn(msgs)
 
-        val messages = chatService.loadChatHistory(userOne, userTwo)
+            val result = chatService.loadChatHistory(u1, u2)
 
-        assertEquals(2, messages.size)
-        assertEquals("Hello Bob!", messages.first().message)
+            assertEquals(2, result.size)
+            assertEquals("Hello Bob!", result.first().message)
+            verify(chatRepo).getChatHistory(chat.id)
+        }
     }
 }
