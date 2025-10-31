@@ -27,7 +27,7 @@ class ChatServiceFriendsTest {
 
     @Before
     fun setup() {
-        chatRepo = ChatRepository()
+        chatRepo = mock()
         relationshipRepository = mock()
         userRepository = mock()
         chatService = ChatService(chatRepo, relationshipRepository, userRepository)
