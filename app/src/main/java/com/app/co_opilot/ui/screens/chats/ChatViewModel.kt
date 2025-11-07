@@ -1,5 +1,7 @@
 package com.app.co_opilot.ui.screens.chats
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.app.co_opilot.domain.Message
 import com.app.co_opilot.service.ChatService
@@ -14,38 +16,23 @@ val LocalChatViewModel = staticCompositionLocalOf<ChatViewModel> {
 data class ChatViewModel(val chatService: ChatService, val userService: UserService) {
     val messages = MutableStateFlow<List<Message>>(emptyList())
 
-    fun loadChat(curUser: String, otherUser: String) {
-//        messages.value = chatService.loadChatHistory(curUser, otherUser)
-        messages.value = listOf(
-            Message( // change this to actual supabase auth session user
-                "id",
-                "chat_id",
-                curUser,
-                "Hello!",
-                Instant.now().toString()
-            ), Message( // change this to actual supabase auth session user
-                "id2",
-                "chat_id",
-                otherUser,
-                "NGMI NGMI NGMI NGMI NGMI NGMI NGMI NGMI NGMI",
-                Instant.now().toString()
-            )
-        )
+    suspend fun loadChat(curUser: String, otherUser: String) {
+        messages.value = chatService.loadChatHistory(curUser, otherUser)
     }
 
-    fun sendMessage(curUser: String, otherUser: String, text: String) {
+    suspend fun sendMessage(curUser: String, otherUser: String, text: String) {
         val newMsg = Message(
             id = System.currentTimeMillis().toString(),
             senderId = curUser,
             message = text,
-            chatId = "id",
+            chatId = "",
             sentAt = Instant.now().toString()
         )
 
         // local append
-        messages.value = messages.value + newMsg
+        messages.value += newMsg
 
         // send to backend
-        // chatService.sendMessage(newMsg)
+        chatService.sendMessage(curUser, otherUser, text)
     }
 }

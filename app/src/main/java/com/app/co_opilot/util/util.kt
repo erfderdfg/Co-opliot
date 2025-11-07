@@ -5,21 +5,23 @@ import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
 fun parseDate(date: String): Date {
-    val formatter = DateTimeFormatterBuilder()
-        .appendPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+    val formatter: DateTimeFormatter = DateTimeFormatterBuilder()
+        .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
         .optionalStart()
-        .appendOffsetId()
+        .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true) // 0–9 fractional digits
+        .optionalEnd()
+        .optionalStart()
+        .appendOffsetId() // e.g. +00:00, -05:30, Z
         .optionalEnd()
         .toFormatter()
 
-    // Use ZonedDateTime or OffsetDateTime
-    val dt = OffsetDateTime.parse(date, formatter)
-
-    return Date.from(dt.toInstant())
+    val odt = OffsetDateTime.parse(date, formatter)
+    return Date.from(odt.toInstant())
 }
 
 
