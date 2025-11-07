@@ -36,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +63,7 @@ import com.app.co_opilot.domain.profile.SocialProfile
 import com.app.co_opilot.util.formatDateDisplay
 import com.app.co_opilot.util.parseDate
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 @Composable
@@ -198,9 +200,10 @@ fun ChatWindow(
     messages: List<Message>,
     curUserId: String,
     otherUser: User,
-    onSend: (String) -> Unit
+    onSend: suspend (String) -> Unit
 ) {
     val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     val tabNavigator = LocalTabNavigator.current
 
     LaunchedEffect(messages.size) {
@@ -240,7 +243,9 @@ fun ChatWindow(
             }
         }
 
-        ChatInputBar(onSend = onSend)
+        ChatInputBar { txt ->
+            scope.launch { onSend(txt) } // launch the suspend lambda
+        }
     }
 }
 
@@ -290,44 +295,16 @@ class ChatScreen(private val userIdPair: Pair<String, String>?): Screen {
         val viewModel = LocalChatViewModel.current
 
         // curUser & otherUser
-        val (curUserId, otherUserId) = userIdPair ?: return
+        val (user1Id, user2Id) = userIdPair ?: return
+        val curUserId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
+        val otherUserId = if (user1Id == curUserId) user2Id else user1Id
 
         val messages by viewModel.messages.collectAsState()
         var otherUser by remember { mutableStateOf<User?>(null) }
 
         LaunchedEffect(userIdPair) {
-            viewModel.loadChat(curUserId, otherUserId)
-//            otherUser = viewModel.userService.getUser(otherUserId)
-            otherUser = User( // change this to actual supabase auth session user
-                "id2",
-                "Benny",
-                "benny@gmail.com",
-                null,
-                Instant.now().toString(),
-                Instant.now().toString(),
-                BasicProfile(),
-                AcademicProfile(
-                    faculty = "Math",
-                    major = mutableListOf("Computer Science", "Stat"),
-                    academicyear = 3,
-                    school = "University of Waterloo",
-                    gpa = 92.0
-                ),
-                CareerProfile(
-                    skills = mutableListOf("Web Dev", "AI", "System Engineering"),
-                    industry = "Software",
-                    yearsOfExp = 1,
-                    pastInternships = mutableListOf("Google", "Amazon", "Meta")
-                ),
-                SocialProfile(
-                    linkedin_url = "https://www.linkedin.com/in/bennywu/",
-                    instagram_username = "bennywu",
-                    x_url = "https://x.com/elonmusk",
-                    interests = mutableListOf("Sports", "Science", "Music"),
-                    hobbies = mutableListOf("Hiking", "Badminton", "Guitar"),
-                    mbti = "INTJ"
-                )
-            )
+            viewModel.loadChat(user1Id, user2Id)
+            otherUser = viewModel.userService.getUser(otherUserId)
         }
         if (otherUser == null) {
             return

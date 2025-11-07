@@ -66,17 +66,27 @@ import java.util.Date
 
 class ChatsListScreen: Screen {
     @Composable
-    fun ChatCard(user2: User, lstMsg: Message?) {
-        val userId = "id1" // should be dynamic
-        val lastSentAt = if (lstMsg != null) formatDateDisplay(parseDate(lstMsg.sentAt)) else ""
+    fun ChatCard(chat: Chat, lstMsg: Message?, chatViewModel: ChatViewModel) {
         val tabNavigator = LocalTabNavigator.current
+        val userId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
+        val lastSentAt = if (lstMsg != null) formatDateDisplay(parseDate(lstMsg.sentAt)) else ""
+
+        val (user2, setUser2) = remember { mutableStateOf<User?>(null) }
+        LaunchedEffect(userId) {
+            setUser2(
+                if (userId == chat.userOneId) chatViewModel.userService.getUser(chat.userTwoId)
+                else chatViewModel.userService.getUser(chat.userOneId)
+            )
+        }
+        if (user2 == null) return
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(4.dp),
             colors = CardDefaults.cardColors(),
             onClick = {
                 // navigate to Chat Screen with specified target user2 id
-                ChatScreen.NavStates.pendingChatSession.value = Pair(userId, user2.id)
+                ChatScreen.NavStates.pendingChatSession.value = Pair(chat.userOneId, chat.userTwoId)
                 tabNavigator.current = ChatScreen.ChatTab
             }
         ) {
@@ -116,96 +126,19 @@ class ChatsListScreen: Screen {
         // use global auth session/state, redirect to auth page if needed
         val viewModel = LocalChatViewModel.current
 
-        var friends by remember { mutableStateOf<List<User>>(emptyList()) }
-        val lastMessage = remember { mutableStateMapOf<String, Message>() } // <friend_id, last-msg>
+        var chats by remember { mutableStateOf<List<Chat>>(emptyList()) }
+        val lastMessage = remember { mutableStateMapOf<String, Message>() } // <chat_id, last-msg>
         var isLoading by remember { mutableStateOf(true) }
 
-        val userId = "id1"; // replace this with actual supabase session
+        val userId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
 
         LaunchedEffect(userId) {
             isLoading = true
-//            friends = viewModel.chatService.loadFriends(userId) // suspend call to chatService
-            friends = listOf(
-//                User(
-//                    "id",
-//                    "Tommy",
-//                    "tommy@gmail.com",
-//                    null,
-//                    Instant.now().toString(),
-//                    Instant.now().toString(),
-//                    BasicProfile(),
-//                    AcademicProfile(
-//                        faculty = "Math",
-//                        major = mutableListOf("Computer Science", "Pure Math"),
-//                        academicyear = 3,
-//                        school = "University of Waterloo",
-//                        gpa = 92.0
-//                    ),
-//                    CareerProfile(
-//                        skills = mutableListOf("Web Dev", "AI", "System Engineering"),
-//                        industry = "Software",
-//                        yearsOfExp = 1,
-//                        pastInternships = mutableListOf("Google", "Amazon", "Meta")
-//                    ),
-//                    SocialProfile(
-//                        linkedin_url = "https://www.linkedin.com/in/tommypang04/",
-//                        instagram_username = "tommypang04",
-//                        x_url = "https://x.com/elonmusk",
-//                        interests = mutableListOf("Sports", "Science", "Music"),
-//                        hobbies = mutableListOf("Hiking", "Badminton", "Guitar"),
-//                        mbti = "INTJ"
-//                    )
-//                ),
-                User( // change this to actual supabase auth session user
-                    "id2",
-                    "Benny",
-                    "benny@gmail.com",
-                    null,
-                    Instant.now().toString(),
-                    Instant.now().toString(),
-                    BasicProfile(),
-                    AcademicProfile(
-                        faculty = "Math",
-                        major = mutableListOf("Computer Science", "Stat"),
-                        academicyear = 3,
-                        school = "University of Waterloo",
-                        gpa = 92.0
-                    ),
-                    CareerProfile(
-                        skills = mutableListOf("Web Dev", "AI", "System Engineering"),
-                        industry = "Software",
-                        yearsOfExp = 1,
-                        pastInternships = mutableListOf("Google", "Amazon", "Meta")
-                    ),
-                    SocialProfile(
-                        linkedin_url = "https://www.linkedin.com/in/bennywu/",
-                        instagram_username = "bennywu",
-                        x_url = "https://x.com/elonmusk",
-                        interests = mutableListOf("Sports", "Science", "Music"),
-                        hobbies = mutableListOf("Hiking", "Badminton", "Guitar"),
-                        mbti = "INTJ"
-                    )
-                )
-            )
-            for (user2 in friends) {
-//                val messages = viewModel.chatService.loadChatHistory(userId, user2.id) // load from actual supabase
-                val messages = listOf(
-                    Message( // change this to actual supabase auth session user
-                        "id",
-                        "chat_id",
-                        "snd_id",
-                        "Hello!",
-                        Instant.now().toString()
-                    ), Message( // change this to actual supabase auth session user
-                        "id",
-                        "chat_id",
-                        "snd_id",
-                        "NGMI NGMI NGMI",
-                        Instant.now().toString()
-                    )
-                )
+            chats = viewModel.chatService.loadChats(userId)
+            for (chat in chats) {
+                val messages = viewModel.chatService.loadChatHistory(chat.userOneId, chat.userTwoId) // load from actual supabase
                 messages.sortedBy { m -> parseDate(m.sentAt) }
-                if (!messages.isEmpty()) lastMessage[user2.id] = messages.last()
+                if (messages.isNotEmpty()) lastMessage[chat.id] = messages.last()
             }
             isLoading = false
         }
@@ -215,12 +148,12 @@ class ChatsListScreen: Screen {
             Spacer(Modifier.height(12.dp))
             when {
                 isLoading -> Text("Loading chats...")
-                friends.isEmpty() -> Text("No friends yet")
+                chats.isEmpty() -> Text("No chats yet")
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    items(friends, key = { it.id }) { friend ->
-                        ChatCard(friend, lastMessage[friend.id])
+                    items(chats, key = { it.id }) { chat ->
+                        ChatCard(chat, lastMessage[chat.id], viewModel)
                         HorizontalDivider(
                             thickness = 0.7.dp,
                             color = MaterialTheme.colorScheme.outlineVariant

@@ -42,11 +42,38 @@ open class ChatRepository(val supabase : SupabaseProvider) {
             supabase.client.postgrest["chats"]
                 .select {
                     filter {
-                        eq("user_one_id", userOneId)
-                        eq("user_two_id", userTwoId)
+                        or {
+                            and {
+                                eq("user_one_id", userOneId)
+                                eq("user_two_id", userTwoId)
+                            }
+                            and {
+                                eq("user_one_id", userTwoId)
+                                eq("user_two_id", userOneId)
+                            }
+                        }
                     }
                 }
                 .decodeSingle<Chat>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw IllegalStateException("Failed to initialize chat session", e)
+        }
+    }
+
+    suspend fun getChats(userId: String): List<Chat> { // get list of chats associated with userId
+//        println("we have " + userId)
+        return try {
+            supabase.client.postgrest["chats"]
+                .select {
+                    filter {
+                        or {
+                            eq("user_one_id", userId)
+                            eq("user_two_id", userId)
+                        }
+                    }
+                }
+                .decodeList<Chat>()
         } catch (e: Exception) {
             e.printStackTrace()
             throw IllegalStateException("Failed to initialize chat session", e)

@@ -54,4 +54,11 @@ class ChatService(
         return friends
     }
 
+    suspend fun loadChats(userId: String): List<Chat> {
+        return try {
+            chatRepo.getChats(userId)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 }
