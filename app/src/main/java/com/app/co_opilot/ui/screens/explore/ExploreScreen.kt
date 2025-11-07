@@ -15,7 +15,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -48,7 +50,16 @@ class ExploreScreen(private val section: Sections?): Screen {
     fun SwipingView(exploreViewModel: ExploreViewModel) {
         val allUsers = exploreViewModel.userList
         val currentUser = allUsers[exploreViewModel.userIndex]
-        val activities: MutableList<Activity> = exploreViewModel.getActivities(currentUser.id)
+        var activityCache by remember { mutableStateOf<Map<String, List<Activity>>>(emptyMap()) }
+
+        val activities = activityCache[currentUser.id] ?: emptyList()
+
+        LaunchedEffect(currentUser.id) {
+            if (activityCache[currentUser.id] == null) {
+                val fresh = exploreViewModel.activityService.getAllActivityForUser(currentUser.id)
+                activityCache = activityCache + (currentUser.id to fresh)
+            }
+        }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -88,7 +99,12 @@ class ExploreScreen(private val section: Sections?): Screen {
     override fun Content() {
         // use global auth session/state, redirect to auth page if needed
         val viewModel = LocalExploreViewModel.current
-        if (section != null) SwipingView(viewModel)
+        LaunchedEffect(Unit) {
+            viewModel.loadUsers()
+        }
+        if (viewModel.userList.isNotEmpty() && section != null) {
+            SwipingView(viewModel)
+        }
     }
 
     object ExploreTab : Tab {
@@ -97,7 +113,7 @@ class ExploreScreen(private val section: Sections?): Screen {
         override fun Content() {
             val exploreVm = remember {
                 ExploreViewModel(
-                    userService = ServiceLocator.userService,
+                    matchService = ServiceLocator.matchService,
                     activityService = ServiceLocator.activityService
                 )
             }
