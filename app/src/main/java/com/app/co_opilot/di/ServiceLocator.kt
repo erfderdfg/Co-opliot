@@ -6,6 +6,7 @@ import com.app.co_opilot.data.repository.ChatRepository
 import com.app.co_opilot.data.repository.UserRepository
 import com.app.co_opilot.service.ActivityService
 import com.app.co_opilot.service.ChatService
+import com.app.co_opilot.service.MatchService
 import com.app.co_opilot.service.UserService
 
 object ServiceLocator {
@@ -19,5 +20,9 @@ object ServiceLocator {
 
     val chatService by lazy {
         ChatService(ChatRepository(SupabaseClient))
+    }
+
+    val matchService by lazy {
+        MatchService(UserRepository(SupabaseClient))
     }
 }

@@ -68,4 +68,8 @@ class ActivityService(
     suspend fun getAllActivity(): List<Activity> {
         return activityRepository.getAllActivity()
     }
+
+    suspend fun getAllActivityForUser(userId: String): List<Activity> {
+        return getAllActivity().filter { activity -> activity.ownerId == userId }
+    }
 }
