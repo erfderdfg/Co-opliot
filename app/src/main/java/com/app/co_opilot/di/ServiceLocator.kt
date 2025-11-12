@@ -12,7 +12,7 @@ import com.app.co_opilot.service.UserService
 
 object ServiceLocator {
     val userService by lazy {
-        UserService(UserRepository(SupabaseClient))
+        UserService(UserRepository(SupabaseClient), RelationshipRepository(SupabaseClient))
     }
 
     val activityService by lazy {
