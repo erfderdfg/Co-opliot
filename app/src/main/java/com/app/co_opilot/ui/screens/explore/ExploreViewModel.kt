@@ -23,6 +23,8 @@ val LocalExploreViewModel = staticCompositionLocalOf<ExploreViewModel> {
 }
 
 data class ExploreViewModel(val matchService: MatchService, val activityService: ActivityService) {
+    val curUserId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
+
     var userIndex by mutableIntStateOf(0)
         private set
 
@@ -30,7 +32,7 @@ data class ExploreViewModel(val matchService: MatchService, val activityService:
         private set
 
     suspend fun loadUsers() {
-        userList = matchService.getRecommendations("id1")
+        userList = matchService.getRecommendations(curUserId)
     }
 
     fun swipeToNextUser() {

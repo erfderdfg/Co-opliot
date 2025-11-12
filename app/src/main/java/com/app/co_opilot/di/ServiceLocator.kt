@@ -3,6 +3,7 @@ package com.app.co_opilot.di
 import com.app.co_opilot.data.SupabaseClient
 import com.app.co_opilot.data.repository.ActivityRepository
 import com.app.co_opilot.data.repository.ChatRepository
+import com.app.co_opilot.data.repository.RelationshipRepository
 import com.app.co_opilot.data.repository.UserRepository
 import com.app.co_opilot.service.ActivityService
 import com.app.co_opilot.service.ChatService
@@ -23,6 +24,6 @@ object ServiceLocator {
     }
 
     val matchService by lazy {
-        MatchService(UserRepository(SupabaseClient))
+        MatchService(UserRepository(SupabaseClient), RelationshipRepository(SupabaseClient))
     }
 }
