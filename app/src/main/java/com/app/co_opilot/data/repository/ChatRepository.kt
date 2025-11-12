@@ -4,42 +4,15 @@ import com.app.co_opilot.data.provider.SupabaseProvider
 import com.app.co_opilot.domain.Chat
 import com.app.co_opilot.domain.Message
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.CancellationException
 import java.util.*
 
 open class ChatRepository(val supabase : SupabaseProvider) {
 
     suspend fun initSession(userOneId: String, userTwoId: String): Chat {
-        return try {
+        try {
+            // Look for an existing chat in either user order
             val existing = supabase.client.postgrest["chats"]
-                .select {
-                    filter {
-                        "user_one_id" to userOneId
-                        "user_two_id" to userTwoId
-                    }
-                }
-                .decodeList<Chat>()
-                .firstOrNull()
-
-            if (existing != null) existing
-
-
-            val newChat = Chat(
-                id = UUID.randomUUID().toString(),
-                userOneId = userOneId,
-                userTwoId = userTwoId,
-                createdAt = Date().toInstant().toString()
-            )
-            supabase.client.postgrest["chats"].insert(listOf(newChat))
-            newChat
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw IllegalStateException("Failed to initialize chat session", e)
-        }
-    }
-
-    suspend fun getChat(userOneId: String, userTwoId: String): Chat {
-        return try {
-            supabase.client.postgrest["chats"]
                 .select {
                     filter {
                         or {
@@ -54,17 +27,60 @@ open class ChatRepository(val supabase : SupabaseProvider) {
                         }
                     }
                 }
-                .decodeSingle<Chat>()
+                .decodeList<Chat>()
+                .firstOrNull()
+
+            if (existing != null) return existing   // <-- actually return it
+
+            val newChat = Chat(
+                id = UUID.randomUUID().toString(),
+                userOneId = userOneId,
+                userTwoId = userTwoId,
+                createdAt = Date().toInstant().toString()
+            )
+            supabase.client.postgrest["chats"].insert(listOf(newChat))
+            return newChat
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
             e.printStackTrace()
             throw IllegalStateException("Failed to initialize chat session", e)
         }
     }
 
-    suspend fun getChats(userId: String): List<Chat> { // get list of chats associated with userId
-//        println("we have " + userId)
-        return try {
-            supabase.client.postgrest["chats"]
+    suspend fun getChat(userOneId: String, userTwoId: String): Chat {
+        try {
+            val chat = supabase.client.postgrest["chats"]
+                .select {
+                    filter {
+                        or {
+                            and {
+                                eq("user_one_id", userOneId)
+                                eq("user_two_id", userTwoId)
+                            }
+                            and {
+                                eq("user_one_id", userTwoId)
+                                eq("user_two_id", userOneId)
+                            }
+                        }
+                    }
+                }
+                .decodeList<Chat>()
+                .firstOrNull()
+
+            return chat ?: throw IllegalArgumentException("Chat not found")
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // true error (network/schema/etc). Keep as state error.
+            throw IllegalStateException("Failed to fetch chat", e)
+        }
+    }
+
+    suspend fun getChats(userId: String): List<Chat> {
+        try {
+            return supabase.client.postgrest["chats"]
                 .select {
                     filter {
                         or {
@@ -74,9 +90,12 @@ open class ChatRepository(val supabase : SupabaseProvider) {
                     }
                 }
                 .decodeList<Chat>()
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
             e.printStackTrace()
-            throw IllegalStateException("Failed to initialize chat session", e)
+            // Prefer empty list over crashing the app
+            return emptyList()
         }
     }
 
@@ -98,17 +117,17 @@ open class ChatRepository(val supabase : SupabaseProvider) {
     }
 
     suspend fun getChatHistory(chatId: String): List<Message> {
-        return try {
-            supabase.client.postgrest["messages"]
+        try {
+            return supabase.client.postgrest["messages"]
                 .select {
-                    filter {
-                        eq("chat_id", chatId)
-                    }
+                    filter { eq("chat_id", chatId) }
                 }
                 .decodeList<Message>()
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
             e.printStackTrace()
-            emptyList()
+            return emptyList()
         }
     }
 }
