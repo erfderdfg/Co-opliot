@@ -31,6 +31,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,7 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
+import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
@@ -60,6 +63,7 @@ import com.app.co_opilot.domain.profile.AcademicProfile
 import com.app.co_opilot.domain.profile.BasicProfile
 import com.app.co_opilot.domain.profile.CareerProfile
 import com.app.co_opilot.domain.profile.SocialProfile
+import com.app.co_opilot.ui.components.FloatingPopup
 import com.app.co_opilot.util.formatDateDisplay
 import com.app.co_opilot.util.parseDate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -200,11 +204,22 @@ fun ChatWindow(
     messages: List<Message>,
     curUserId: String,
     otherUser: User,
-    onSend: suspend (String) -> Unit
+    onSend: suspend (String) -> Unit,
+    viewModel: ChatViewModel
 ) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val tabNavigator = LocalTabNavigator.current
+    val navigator = LocalNavigator.currentOrThrow
+
+    var showPopup by remember { mutableStateOf(false) }
+    var popupContent by remember { mutableStateOf<ListPopupEvent?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.listPopupMessage.collect { ev ->
+            popupContent = ev
+            showPopup = true
+        }
+    }
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -212,83 +227,65 @@ fun ChatWindow(
         }
     }
 
-    val onBack: () -> Unit = {
-        // move back to chat list screen
-        tabNavigator.current = ChatsListScreen.ChatsListTab
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopChatMsgPolling()
+            viewModel.clearActiveChat()
+        }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF7F2FA)) // Light purple similar to screenshot
-    ) {
-        ChatTopBar(otherUser, onBack)
+    val onBack: () -> Unit = {
+        // move back to chat list screen
+        navigator.pop()
+    }
 
-        LazyColumn(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 12.dp),
-            state = listState
+                .fillMaxSize()
+                .background(Color(0xFFF7F2FA)) // Light purple similar to screenshot
         ) {
-            itemsIndexed(messages) { index, msg ->
-                val prev = messages.getOrNull(index - 1)
+            ChatTopBar(otherUser, onBack)
 
-                if (shouldShowTimestamp(prev, msg)) {
-                    TimestampLabel(msg.sentAt)
-                    Spacer(Modifier.height(6.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp),
+                state = listState
+            ) {
+                itemsIndexed(messages) { index, msg ->
+                    val prev = messages.getOrNull(index - 1)
+
+                    if (shouldShowTimestamp(prev, msg)) {
+                        TimestampLabel(msg.sentAt)
+                        Spacer(Modifier.height(6.dp))
+                    }
+
+                    MessageBubble(message = msg, isMe = msg.senderId == curUserId)
+                    Spacer(Modifier.height(8.dp))
                 }
+            }
 
-                MessageBubble(message = msg, isMe = msg.senderId == curUserId)
-                Spacer(Modifier.height(8.dp))
+            ChatInputBar { txt ->
+                scope.launch { onSend(txt) } // launch the suspend lambda
             }
         }
-
-        ChatInputBar { txt ->
-            scope.launch { onSend(txt) } // launch the suspend lambda
+        if (showPopup && popupContent != null) {
+            println("SHOULD SHOW! $popupContent")
+            FloatingPopup(
+                from = popupContent!!.message.senderId,
+                text = popupContent!!.message.message,
+                visible = true,
+                onDismiss = {
+                    showPopup = false
+                },
+                modifier = Modifier
+            )
         }
     }
 }
 
 class ChatScreen(private val userIdPair: Pair<String, String>?): Screen {
-    object NavStates { // Channel between ChatsListScreen and ChatScreen to open up chat
-        val pendingChatSession = MutableStateFlow<Pair<String, String>?>(null)
-    }
-    object ChatTab : Tab {
-
-        @Composable
-        override fun Content() {
-            val chatViewModel = remember {
-                ChatViewModel(
-                    chatService = ServiceLocator.chatService,
-                    userService = ServiceLocator.userService
-                )
-            }
-            CompositionLocalProvider(LocalChatViewModel provides chatViewModel) {
-                Navigator(ChatScreen(userIdPair = null)) { navigator ->
-                    val pending by NavStates
-                        .pendingChatSession
-                        .collectAsState()
-
-                    LaunchedEffect(pending, navigator) {
-                        pending?.let {
-                            navigator.push(ChatScreen(it))
-                            NavStates.pendingChatSession.value = null
-                        }
-                    }
-                    CurrentScreen()
-                }
-            }
-        }
-
-        override val options: TabOptions
-            @Composable get() {
-                return TabOptions(
-                    index = 0u,
-                    title = "Chat",
-                    icon = null
-                )
-            }
-    }
 
     @Composable
     override fun Content() {
@@ -303,7 +300,8 @@ class ChatScreen(private val userIdPair: Pair<String, String>?): Screen {
         var otherUser by remember { mutableStateOf<User?>(null) }
 
         LaunchedEffect(userIdPair) {
-            viewModel.loadChat(user1Id, user2Id)
+            viewModel.setActiveChat(user1Id, user2Id)
+            viewModel.loadChat(curUserId, otherUserId)
             otherUser = viewModel.userService.getUser(otherUserId)
         }
         if (otherUser == null) {
@@ -314,7 +312,8 @@ class ChatScreen(private val userIdPair: Pair<String, String>?): Screen {
             messages = messages,
             curUserId = curUserId,
             onSend = { text -> viewModel.sendMessage(curUserId, otherUserId, text) },
-            otherUser = otherUser!!
+            otherUser = otherUser!!,
+            viewModel = viewModel
         )
     }
 }

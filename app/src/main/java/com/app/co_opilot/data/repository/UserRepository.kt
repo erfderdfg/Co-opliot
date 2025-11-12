@@ -92,7 +92,7 @@ open class UserRepository(val supabase : SupabaseProvider) {
             supabase.client.postgrest["users"]
                 .update(updatedUser) {
                     filter {
-                        "id" to userId
+                        eq("id", userId)
                     }
                 }
 
