@@ -17,6 +17,7 @@ class MatchService(
     ): List<User> {
 
         val allUsers = userRepository.getAllUsers()
+        println("MatchService: Fetched ${allUsers.size} users from repository")
         val self = allUsers.firstOrNull { it.id == userId } ?: return emptyList()
         val others = allUsers.filter { it.id != userId }
 

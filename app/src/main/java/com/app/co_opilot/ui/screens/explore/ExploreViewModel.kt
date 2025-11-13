@@ -15,6 +15,8 @@ import com.app.co_opilot.domain.profile.SocialProfile
 import com.app.co_opilot.service.ActivityService
 import com.app.co_opilot.service.MatchService
 import com.app.co_opilot.service.UserService
+import com.app.co_opilot.ui.screens.auth.AuthViewModel
+import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 import java.util.Date
 
@@ -22,8 +24,12 @@ val LocalExploreViewModel = staticCompositionLocalOf<ExploreViewModel> {
     error("ExploreViewModel not provided")
 }
 
-data class ExploreViewModel(val matchService: MatchService, val activityService: ActivityService) {
-    val curUserId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
+data class ExploreViewModel(
+    val matchService: MatchService,
+    val activityService: ActivityService,
+    private val authViewModel: AuthViewModel
+) {
+    val curUserId: StateFlow<String?> = authViewModel.currentUserId
 
     var userIndex by mutableIntStateOf(0)
         private set
@@ -32,6 +38,8 @@ data class ExploreViewModel(val matchService: MatchService, val activityService:
         private set
 
     suspend fun loadUsers() {
+        val curUserId = curUserId.value ?: return
+        println("ExploreViewModel: Loading users for userId=$curUserId")
         userList = matchService.getRecommendations(curUserId)
     }
 

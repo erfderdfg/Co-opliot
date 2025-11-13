@@ -114,7 +114,8 @@ class ExploreScreen(private val section: Sections?): Screen {
             val exploreVm = remember {
                 ExploreViewModel(
                     matchService = ServiceLocator.matchService,
-                    activityService = ServiceLocator.activityService
+                    activityService = ServiceLocator.activityService,
+                    authViewModel = ServiceLocator.authViewModel
                 )
             }
 

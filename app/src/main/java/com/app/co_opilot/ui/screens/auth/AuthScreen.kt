@@ -43,6 +43,7 @@ import io.github.jan.supabase.gotrue.providers.builtin.Email
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import com.app.co_opilot.data.LocalAuthState
+import com.app.co_opilot.di.ServiceLocator
 
 class AuthScreen: Screen {
 
@@ -133,6 +134,11 @@ class AuthScreen: Screen {
                                 }
                                 println("Successfully signed in user")
                                 authState.isAuthenticated = true
+                                // Get the current session after sign-in
+                                val currentSession = SupabaseClient.client.auth.currentSessionOrNull()
+                                currentSession?.user?.email?.let { userEmail ->
+                                    ServiceLocator.authViewModel.authenticateAndLoadUser(userEmail)
+                                }
                                 tabNavigator.current = DiscoveryScreen.DiscoveryTab
                             } catch (e: Exception) {
                                 println("Error signing in: ${e.message}")
