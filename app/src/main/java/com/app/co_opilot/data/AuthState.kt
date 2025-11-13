@@ -7,11 +7,6 @@ import androidx.compose.runtime.setValue
 
 class AuthState {
     var isAuthenticated by mutableStateOf(false)
-        private set
-
-    fun setAuthenticated(value: Boolean) {
-        isAuthenticated = value
-    }
 }
 
 val LocalAuthState = compositionLocalOf<AuthState> {
