@@ -1,7 +1,5 @@
 package com.app.co_opilot.data.repository
 
-import android.util.Log
-import com.app.co_opilot.data.SupabaseClient
 import com.app.co_opilot.data.provider.SupabaseProvider
 import com.app.co_opilot.domain.User
 import com.app.co_opilot.domain.profile.AcademicProfile
@@ -9,14 +7,6 @@ import com.app.co_opilot.domain.profile.BasicProfile
 import com.app.co_opilot.domain.profile.CareerProfile
 import com.app.co_opilot.domain.profile.SocialProfile
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
-
-import kotlinx.serialization.Serializable
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 
 private const val TAG = "UserRepository"

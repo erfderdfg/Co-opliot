@@ -14,7 +14,7 @@ import com.app.co_opilot.ui.screens.explore.ExploreViewModel
 
 object ServiceLocator {
     val userService by lazy {
-        UserService(UserRepository(SupabaseClient))
+        UserService(UserRepository(SupabaseClient), RelationshipRepository(SupabaseClient))
     }
 
     val activityService by lazy {
@@ -33,6 +33,8 @@ object ServiceLocator {
         ExploreViewModel(
             matchService = matchService,
             activityService = activityService,
+            userService = userService,
+            chatService = chatService,
             authViewModel = authViewModel
         )
     }

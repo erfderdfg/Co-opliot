@@ -66,6 +66,7 @@ import com.app.co_opilot.domain.profile.BasicProfile
 import com.app.co_opilot.domain.profile.CareerProfile
 import com.app.co_opilot.domain.profile.SocialProfile
 import com.app.co_opilot.ui.components.FloatingPopup
+import com.app.co_opilot.ui.components.ScreenHeader
 import com.app.co_opilot.util.formatDateDisplay
 import com.app.co_opilot.util.parseDate
 import java.time.Instant
@@ -166,8 +167,9 @@ class ChatsListScreen: Screen {
 
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.padding(horizontal = 32.dp)) {
-                Text("My Chats", fontSize = 32.sp, modifier = Modifier.padding(top = 16.dp))
-                Spacer(Modifier.height(12.dp))
+
+                ScreenHeader("My Chats", "A list of matched users. Start a chat with them!")
+
                 when {
                     chats.isEmpty() -> Text("No chats yet")
                     else -> LazyColumn(

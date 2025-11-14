@@ -1,5 +1,6 @@
 package com.app.co_opilot.service
 
+import com.app.co_opilot.data.repository.RelationshipRepository
 import com.app.co_opilot.data.repository.UserRepository
 import com.app.co_opilot.domain.User
 import com.app.co_opilot.domain.profile.AcademicProfile
@@ -16,6 +17,7 @@ import java.util.Date
 class UserServiceTest {
 
     private lateinit var userRepository: UserRepository
+    private lateinit var relationshipRepository: RelationshipRepository
     private lateinit var userService: UserService
 
     private val testUser = User(
@@ -34,7 +36,8 @@ class UserServiceTest {
     @Before
     fun setup() {
         userRepository = mock()
-        userService = UserService(userRepository)
+        relationshipRepository = mock()
+        userService = UserService(userRepository, relationshipRepository)
     }
 
     @Test

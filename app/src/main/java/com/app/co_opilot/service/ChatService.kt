@@ -13,7 +13,6 @@ class ChatService(
     private val relationshipRepo: RelationshipRepository? = null,
     private val userRepo: UserRepository? = null
 ) {
-
     suspend fun sendMessage(senderId: String, receiverId: String, message: String): Boolean {
 
         try {
@@ -27,6 +26,10 @@ class ChatService(
             throw ce
         }
 
+    }
+
+    suspend fun initSession(senderId: String, receiverId: String) {
+        chatRepo.initSession(senderId, receiverId)
     }
 
 

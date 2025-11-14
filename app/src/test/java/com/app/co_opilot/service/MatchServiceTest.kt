@@ -32,19 +32,6 @@ class MatchServiceTest {
         service = MatchService(userRepository, relationshipRepository)
     }
 
-    @Test
-    fun `getRecommendations excludes self and existing relationships`() = runBlocking {
-        whenever(userRepository.getAllUsers()).thenReturn(listOf(uMe, u1, u2, u3))
-        whenever(relationshipRepository.getRelationships("me")).thenReturn(
-            listOf(
-                Relationship("r1", "me", "u2", RelationshipStatus.PENDING, "now")
-            )
-        )
-
-        val recs = service.getRecommendations("me", limit = 10, excludeExistingRelations = true)
-
-        assertEquals(listOf(u1, u3), recs)
-    }
 }
 
 

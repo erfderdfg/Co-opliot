@@ -1,14 +1,17 @@
 package com.app.co_opilot.service
 
+import com.app.co_opilot.data.repository.RelationshipRepository
 import com.app.co_opilot.data.repository.UserRepository
+import com.app.co_opilot.domain.Relationship
 import com.app.co_opilot.domain.User
+import com.app.co_opilot.domain.enums.RelationshipStatus
 import com.app.co_opilot.domain.profile.AcademicProfile
 import com.app.co_opilot.domain.profile.BasicProfile
 import com.app.co_opilot.domain.profile.CareerProfile
 import com.app.co_opilot.domain.profile.SocialProfile
 import java.util.Date
 
-class UserService(var userRepository: UserRepository) {
+class UserService(var userRepository: UserRepository, var relationshipRepository: RelationshipRepository) {
     suspend fun login(email: String, password: String) {
         // supabase client?
     }
@@ -43,5 +46,12 @@ class UserService(var userRepository: UserRepository) {
 
     suspend fun getAllUsers(): List<User> {
         return userRepository.getAllUsers();
+    }
+
+    suspend fun likeUser(userOneId: String, userTwoId: String) {
+        // assume only one relationship status (LIKED) for now
+        if (relationshipRepository.findRelationship(userOneId, userTwoId) == null) {
+            relationshipRepository.addRelationship(userOneId, userTwoId, RelationshipStatus.LIKED)
+        }
     }
 }
