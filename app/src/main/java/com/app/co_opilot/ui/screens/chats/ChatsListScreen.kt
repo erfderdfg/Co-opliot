@@ -76,7 +76,8 @@ class ChatsListScreen: Screen {
     @Composable
     fun ChatCard(chat: Chat, lstMsg: Message?, chatViewModel: ChatViewModel) {
         val navigator = LocalNavigator.currentOrThrow
-        val userId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
+        val authViewModel = remember { ServiceLocator.authViewModel }
+        val userId by authViewModel.currentUserId.collectAsState()
         val lastSentAt = if (lstMsg != null) formatDateDisplay(parseDate(lstMsg.sentAt)) else ""
 
         val (user2, setUser2) = remember { mutableStateOf<User?>(null) }
@@ -132,7 +133,8 @@ class ChatsListScreen: Screen {
     override fun Content() {
         // use global auth session/state, redirect to auth page if needed
         val viewModel = LocalChatViewModel.current
-        val userId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
+        val authViewModel = remember { ServiceLocator.authViewModel }
+        val userId by authViewModel.currentUserId.collectAsState()
 
         val chats by viewModel.chatLists.collectAsState()
         val lastMessageMap by viewModel.lastMessageMap.collectAsState()
@@ -146,8 +148,18 @@ class ChatsListScreen: Screen {
             }
         }
 
+        if (userId == null) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No chats")
+            }
+            return
+        }
+
         LaunchedEffect(userId) {
-            viewModel.startChatListPolling(userId)
+            viewModel.startChatListPolling(userId!!)
         }
         /*DisposableEffect(Unit) {
             onDispose { viewModel.stopChatListPolling() }

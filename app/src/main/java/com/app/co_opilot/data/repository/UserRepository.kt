@@ -28,6 +28,23 @@ open class UserRepository(val supabase : SupabaseProvider) {
         }
     }
 
+    suspend fun getUserByEmail(email: String): User? {
+        return try {
+            val result = supabase.client.postgrest["users"]
+                .select {
+                    filter {
+                        eq("email", email)
+                    }
+                }
+                .decodeSingle<User>()
+            result
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
     suspend fun createUser(
         id: String,
         name: String,
@@ -146,11 +163,10 @@ open class UserRepository(val supabase : SupabaseProvider) {
 
     suspend fun getAllUsers(): List<User> {
         return try {
-            val results = supabase.client.postgrest["users"]
+            supabase.client.postgrest["users"]
                 .select()
                 .decodeList<User>()
 
-            results.map { it }
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()

@@ -22,6 +22,10 @@ class UserService(var userRepository: UserRepository, var relationshipRepository
         return userRepository.getUser(userId)
     }
 
+    suspend fun getUserByEmail(email: String) : User? {
+        return userRepository.getUserByEmail(email)
+    }
+
     suspend fun createUser(id: String, name: String, email: String, avatar: String?, createdAt: Date, updatedAt: Date, basicProfile: BasicProfile, academicProfile: AcademicProfile, careerProfile: CareerProfile, socialProfile: SocialProfile) {
         userRepository.createUser(id, name, email, avatar, createdAt, updatedAt, basicProfile, academicProfile, careerProfile, socialProfile)
     }

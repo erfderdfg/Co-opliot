@@ -253,7 +253,8 @@ class ExploreScreen(private val section: Sections?): Screen {
                     matchService = ServiceLocator.matchService,
                     activityService = ServiceLocator.activityService,
                     userService = ServiceLocator.userService,
-                    chatService = ServiceLocator.chatService
+                    chatService = ServiceLocator.chatService,
+                    authViewModel = ServiceLocator.authViewModel
                 )
             }
 

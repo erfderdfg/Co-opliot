@@ -64,6 +64,7 @@ import com.app.co_opilot.domain.profile.AcademicProfile
 import com.app.co_opilot.domain.profile.BasicProfile
 import com.app.co_opilot.domain.profile.CareerProfile
 import com.app.co_opilot.domain.profile.SocialProfile
+import com.app.co_opilot.ui.components.ScreenHeader
 import com.app.co_opilot.ui.components.SocialIcon
 import com.app.co_opilot.ui.components.UserDeck
 import com.app.co_opilot.ui.screens.discovery.DiscoveryScreen
@@ -84,7 +85,11 @@ class ProfileScreen() : Screen {
         val tabNavigator = LocalTabNavigator.current
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()) {
+            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp, horizontal = 22.dp)) {
+
+            item {
+                ScreenHeader("My Profile", "Edit your info to maximize matching chances")
+            }
 
             item {
                 Spacer(Modifier.height(12.dp))
@@ -229,7 +234,7 @@ class ProfileScreen() : Screen {
                 user = User( // change this to actual supabase auth session user
                     "id2",
                     "Benny",
-                    "benny@gmail.com",
+                    "b5wu@uwaterloo.ca",
                     null,
                     Instant.now().toString(),
                     Instant.now().toString(),

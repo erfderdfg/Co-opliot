@@ -290,18 +290,18 @@ class ChatScreen(private val userIdPair: Pair<String, String>?): Screen {
     @Composable
     override fun Content() {
         val viewModel = LocalChatViewModel.current
-
-        // curUser & otherUser
+        val authViewModel = remember { ServiceLocator.authViewModel }
+        val curUserId by authViewModel.currentUserId.collectAsState()
         val (user1Id, user2Id) = userIdPair ?: return
-        val curUserId = "03a7b29c-ad4a-423b-b412-95cce56ceb94" // TODO: changeit
         val otherUserId = if (user1Id == curUserId) user2Id else user1Id
 
         val messages by viewModel.messages.collectAsState()
         var otherUser by remember { mutableStateOf<User?>(null) }
+        println("ChatScreen RECOMPOSE - userIdPair: $userIdPair, curUserId: $curUserId, otherUser: ${otherUser?.name}, messageCount: ${messages.size}")
 
         LaunchedEffect(userIdPair) {
             viewModel.setActiveChat(user1Id, user2Id)
-            viewModel.loadChat(curUserId, otherUserId)
+            viewModel.loadChat(curUserId!!, otherUserId)
             otherUser = viewModel.userService.getUser(otherUserId)
         }
         if (otherUser == null) {
@@ -310,8 +310,8 @@ class ChatScreen(private val userIdPair: Pair<String, String>?): Screen {
 
         ChatWindow(
             messages = messages,
-            curUserId = curUserId,
-            onSend = { text -> viewModel.sendMessage(curUserId, otherUserId, text) },
+            curUserId = curUserId!!,
+            onSend = { text -> viewModel.sendMessage(curUserId!!, otherUserId, text) },
             otherUser = otherUser!!,
             viewModel = viewModel
         )

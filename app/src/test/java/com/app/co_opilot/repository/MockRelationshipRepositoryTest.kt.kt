@@ -31,8 +31,8 @@ class MockRelationshipRepositoryTest {
         repo.seed(
             listOf(
                 rel("r1", "u1", "u2", RelationshipStatus.PENDING),
-                rel("r2", "u2", "u1", RelationshipStatus.MATCHED),
-                rel("r3", "u1", "u3", RelationshipStatus.MATCHED)
+                rel("r2", "u2", "u1", RelationshipStatus.LIKED),
+                rel("r3", "u1", "u3", RelationshipStatus.LIKED)
             )
         )
 
@@ -57,7 +57,7 @@ class MockRelationshipRepositoryTest {
     @Test
     fun `findRelationship returns pair match`() = runTest {
         val repo = MockRelationshipRepository()
-        val r = rel("r1", "u1", "u2", RelationshipStatus.MATCHED)
+        val r = rel("r1", "u1", "u2", RelationshipStatus.LIKED)
         repo.seed(listOf(r))
 
         val res = repo.findRelationship("u1", "u2")
@@ -68,7 +68,7 @@ class MockRelationshipRepositoryTest {
     @Test
     fun `deleteRelationship removes by id`() = runTest {
         val repo = MockRelationshipRepository()
-        val r = rel("r1", "u1", "u2", RelationshipStatus.MATCHED)
+        val r = rel("r1", "u1", "u2", RelationshipStatus.LIKED)
         repo.seed(listOf(r))
 
         assertTrue(repo.deleteRelationship("r1"))
