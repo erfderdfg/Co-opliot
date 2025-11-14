@@ -1,7 +1,6 @@
 package com.app.co_opilot.data.repository
 
 import com.app.co_opilot.data.provider.SupabaseProvider
-import com.app.co_opilot.data.SupabaseClient
 import com.app.co_opilot.domain.Relationship
 import com.app.co_opilot.domain.enums.RelationshipStatus
 import io.github.jan.supabase.postgrest.postgrest
