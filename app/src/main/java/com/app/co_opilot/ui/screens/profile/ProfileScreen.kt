@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.app.co_opilot.R
@@ -71,32 +72,8 @@ import com.app.co_opilot.ui.screens.explore.LocalExploreViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.app.co_opilot.ui.screens.explore.ExploreScreen
 import com.app.co_opilot.ui.screens.explore.ExploreScreen.NavStates
+import com.app.co_opilot.ui.screens.setting.SettingScreen
 import java.time.Instant
-
-
-//class ProfileScreen: Screen {
-//    @Composable
-//    override fun Content() {
-//        Text(text = "TESTING", fontSize = 30.sp)
-//    }
-//    object ProfileTab : Tab {
-//
-//        @Composable
-//        override fun Content() {
-//            Navigator(ProfileScreen()) { CurrentScreen() }
-//        }
-//
-//        override val options: TabOptions
-//            @Composable get() {
-//                val icon = rememberVectorPainter(Icons.Rounded.Person)
-//                return TabOptions(
-//                    index = 0u,
-//                    title = "Profile",
-//                    icon = icon
-//                )
-//            }
-//    }
-//}
 
 class ProfileScreen() : Screen {
 
@@ -104,6 +81,7 @@ class ProfileScreen() : Screen {
     private fun ProfileContent(
         user: User,
     ) {
+        val tabNavigator = LocalTabNavigator.current
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()) {
@@ -168,7 +146,7 @@ class ProfileScreen() : Screen {
                     )
                 ) {
                     Column(modifier = Modifier.padding(14.dp).clickable {
-                        // todo: navigation
+                        tabNavigator.current = SettingScreen.SettingTab
                     }) {
                         Text(
                             text = "Settings",
