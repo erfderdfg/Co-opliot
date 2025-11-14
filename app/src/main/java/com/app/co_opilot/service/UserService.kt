@@ -46,7 +46,7 @@ class UserService(var userRepository: UserRepository, var relationshipRepository
 
     suspend fun likeUser(userOneId: String, userTwoId: String) {
         // assume only one relationship status (LIKED) for now
-        if (relationshipRepository.findRelationship(userOneId, userTwoId) != null) {
+        if (relationshipRepository.findRelationship(userOneId, userTwoId) == null) {
             relationshipRepository.addRelationship(userOneId, userTwoId, RelationshipStatus.LIKED)
         }
     }
