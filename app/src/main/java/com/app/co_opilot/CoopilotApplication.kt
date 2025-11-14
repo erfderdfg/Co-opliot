@@ -14,16 +14,21 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabNavigator
+import com.app.co_opilot.data.AuthState
+import com.app.co_opilot.data.LocalAuthState
 import com.app.co_opilot.ui.screens.auth.AuthScreen
 import com.app.co_opilot.ui.screens.chats.ChatsListScreen
 import com.app.co_opilot.ui.screens.discovery.DiscoveryScreen
 import com.app.co_opilot.ui.screens.profile.ProfileScreen
 import com.app.co_opilot.ui.theme.CoopilotTheme
+import io.github.jan.supabase.gotrue.auth
 
 class CoopilotApplication : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,19 +42,23 @@ class CoopilotApplication : ComponentActivity() {
 
 @Composable
 fun App() {
+    val authState = remember { AuthState() }
+
     CoopilotTheme {
-        TabNavigator(AuthScreen.AuthTab) {
-            Scaffold(
-                bottomBar = {
-                    NavigationBar {
-                        TabItem(DiscoveryScreen.DiscoveryTab)
-                        TabItem(ChatsListScreen.ChatsListTab)
-                        TabItem(ProfileScreen.ProfileTab)
+        CompositionLocalProvider(LocalAuthState provides authState) {
+            TabNavigator(AuthScreen.AuthTab) {
+                Scaffold(
+                    bottomBar = {
+                        NavigationBar {
+                            TabItem(DiscoveryScreen.DiscoveryTab)
+                            TabItem(ChatsListScreen.ChatsListTab)
+                            TabItem(ProfileScreen.ProfileTab)
+                        }
                     }
-                }
-            ) { innerPadding ->
-                Box(modifier = Modifier.padding(innerPadding)) {
-                    CurrentTab()
+                ) { innerPadding ->
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        CurrentTab()
+                    }
                 }
             }
         }
@@ -59,9 +68,18 @@ fun App() {
 @Composable
 private fun RowScope.TabItem(tab: Tab) {
     val tabNavigator = LocalTabNavigator.current
+    val authState = LocalAuthState.current
     NavigationBarItem(
         selected = tabNavigator.current == tab,
-        onClick = { tabNavigator.current = tab },
+        onClick = {
+            if (authState.isAuthenticated) {
+                println("User is authenticated")
+                tabNavigator.current = tab
+            } else {
+                println("No authenticated user found. Redirecting to AuthScreen.")
+                tabNavigator.current = AuthScreen.AuthTab
+            }
+                  },
         icon = { tab.options.icon?.let { Icon(painter = it, contentDescription = null) } },
         label = { Text(tab.options.title) }
     )
