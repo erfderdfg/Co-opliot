@@ -57,7 +57,16 @@ data class ExploreViewModel(
     }
 
     suspend fun likeUser(target: String) {
-        userService.likeUser(curUserId.value ?: return, target)
-        chatService.initSession(curUserId.value ?: return, target)
+        val currentUserId = curUserId.value ?: return
+        userService.likeUser(currentUserId, target)
+
+        // Try to create chat session only if both users have mutually liked each other
+        try {
+            chatService.initSession(currentUserId, target)
+            println("Chat session created: mutual match between $currentUserId and $target")
+        } catch (e: IllegalStateException) {
+            // This is expected when only one user has liked the other
+            println("Chat not created yet: waiting for mutual like between $currentUserId and $target")
+        }
     }
 }
