@@ -70,13 +70,59 @@ open class RelationshipRepository(val supabase : SupabaseProvider) {
 
     suspend fun deleteRelationship(id: String): Boolean {
         return try {
-            supabase.client.postgrest["users"].delete {
+            supabase.client.postgrest["relationships"].delete {
                 filter {
                     eq("id", id)
                 }
             }
 
             true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun blockUser(blockerId: String, blockedId: String): Boolean {
+        return try {
+            val existing = findRelationship(blockerId, blockedId)
+
+            if (existing != null) {
+                supabase.client.postgrest["relationships"].update(
+                    {
+                        set("status", RelationshipStatus.BLOCKED)
+                        set("updated_at", java.util.Date().toInstant().toString())
+                    }
+                ) {
+                    filter {
+                        eq("id", existing.id)
+                    }
+                }
+            } else {
+                val relationship = Relationship(
+                    id = java.util.UUID.randomUUID().toString(),
+                    userOneId = blockerId,
+                    userTwoId = blockedId,
+                    status = RelationshipStatus.BLOCKED,
+                    createdAt = java.util.Date().toInstant().toString(),
+                    updatedAt = java.util.Date().toInstant().toString()
+                )
+                supabase.client.postgrest["relationships"].insert(listOf(relationship))
+            }
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun isBlocked(userOneId: String, userTwoId: String): Boolean {
+        return try {
+            val relationship1 = findRelationship(userOneId, userTwoId)
+            val relationship2 = findRelationship(userTwoId, userOneId)
+
+            relationship1?.status == RelationshipStatus.BLOCKED ||
+            relationship2?.status == RelationshipStatus.BLOCKED
         } catch (e: Exception) {
             e.printStackTrace()
             false

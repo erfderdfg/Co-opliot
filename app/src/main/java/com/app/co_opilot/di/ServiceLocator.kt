@@ -22,7 +22,11 @@ object ServiceLocator {
     }
 
     val chatService by lazy {
-        ChatService(ChatRepository(SupabaseClient))
+        ChatService(
+            ChatRepository(SupabaseClient),
+            RelationshipRepository(SupabaseClient),
+            UserRepository(SupabaseClient)
+        )
     }
 
     val matchService by lazy {

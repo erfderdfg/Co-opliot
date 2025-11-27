@@ -4,6 +4,7 @@ import com.app.co_opilot.data.repository.RelationshipRepository
 import com.app.co_opilot.data.repository.UserRepository
 import com.app.co_opilot.domain.User
 import com.app.co_opilot.domain.enums.Sections
+import com.app.co_opilot.domain.enums.RelationshipStatus
 import kotlin.math.sqrt
 
 class MatchService(
@@ -19,25 +20,29 @@ class MatchService(
 
         val allUsers = userRepository.getAllUsers()
         val self = allUsers.first { it.id == userId }
-        val others = allUsers.filter { it.id != userId }
 
-        // Build graph once
         val relationships = relationshipRepository.getAllRelationships()
+
+        val others = allUsers.filter { candidate ->
+            if (candidate.id == userId) return@filter false
+
+            val userBlockedCandidate = relationships.any {
+                it.userOneId == userId && it.userTwoId == candidate.id && it.status == RelationshipStatus.BLOCKED
+            }
+            val candidateBlockedUser = relationships.any {
+                it.userOneId == candidate.id && it.userTwoId == userId && it.status == RelationshipStatus.BLOCKED
+            }
+
+            !(userBlockedCandidate || candidateBlockedUser)
+        }
+
         val graph = buildGraph(relationships)
 
-        // Score users based on section
         val scored = others.map { candidate ->
             val score = when (section) {
-
-                /** SOCIAL MATCHING **/
                 Sections.SOCIAL -> socialSimilarity(self, candidate, graph)
-
-                /** ACADEMIC MATCHING **/
                 Sections.ACADEMICS -> academicSimilarityScore(self, candidate)
-
-                /** COOP/CAREER MATCHING **/
                 Sections.COOP -> coopSimilarity(self, candidate, graph)
-
                 null -> socialSimilarity(self, candidate, graph)
             }
 

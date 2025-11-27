@@ -57,7 +57,24 @@ data class ExploreViewModel(
     }
 
     suspend fun likeUser(target: String) {
-        userService.likeUser(curUserId.value ?: return, target)
-        chatService.initSession(curUserId.value ?: return, target)
+        val currentUserId = curUserId.value ?: return
+        userService.likeUser(currentUserId, target)
+
+        try {
+            chatService.initSession(currentUserId, target)
+            println("Chat session created: mutual match between $currentUserId and $target")
+        } catch (e: IllegalStateException) {
+            println("Chat not created yet: waiting for mutual like between $currentUserId and $target")
+        }
+    }
+
+    suspend fun blockUser(target: String) {
+        val currentUserId = curUserId.value ?: return
+
+        chatService.blockUserAndDeleteChat(currentUserId, target)
+
+        println("User $target blocked by $currentUserId and chat deleted")
+
+        loadUsers(null)
     }
 }

@@ -43,6 +43,8 @@ import com.app.co_opilot.domain.enums.Sections
 import com.app.co_opilot.ui.components.ScreenHeader
 import com.app.co_opilot.ui.components.UserDeck
 import com.app.co_opilot.ui.screens.chats.ChatScreen
+import com.app.co_opilot.ui.screens.chats.ChatViewModel
+import com.app.co_opilot.ui.screens.chats.LocalChatViewModel
 import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -107,10 +109,19 @@ class ExploreScreen(private val section: Sections?): Screen {
                         },
                         isLiked = liked[currentIndex],
                         onLikeClick = {
-                            // Handle like action
                             scope.launch {
                                 liked[currentIndex] = !liked[currentIndex]
                                 exploreViewModel.likeUser(currentUser.id)
+                            }
+                        },
+                        onBlockClick = {
+                            scope.launch {
+                                exploreViewModel.blockUser(currentUser.id)
+                                if (currentIndex < allUsers.size - 1) {
+                                    exploreViewModel.swipeToNextUser()
+                                } else if (currentIndex > 0) {
+                                    exploreViewModel.swipeToPreviousUser()
+                                }
                             }
                         },
                         modifier = Modifier
@@ -264,8 +275,17 @@ class ExploreScreen(private val section: Sections?): Screen {
                     authViewModel = ServiceLocator.authViewModel
                 )
             }
+            val chatVm = remember {
+                ChatViewModel(
+                    chatService = ServiceLocator.chatService,
+                    userService = ServiceLocator.userService
+                )
+            }
 
-            CompositionLocalProvider(LocalExploreViewModel provides exploreVm) {
+            CompositionLocalProvider(
+                    LocalExploreViewModel provides exploreVm,
+                    LocalChatViewModel provides chatVm
+            ) {
                 Navigator(ExploreScreen(section = null)) { navigator ->
                     val pending by NavStates
                         .pendingExploreSection
