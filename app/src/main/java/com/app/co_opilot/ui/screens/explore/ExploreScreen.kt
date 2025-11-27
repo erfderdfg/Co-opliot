@@ -30,14 +30,22 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
+import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import com.app.co_opilot.data.SupabaseClient
 import com.app.co_opilot.di.ServiceLocator
+import com.app.co_opilot.di.ServiceLocator.authViewModel
 import com.app.co_opilot.domain.Activity
 import com.app.co_opilot.domain.enums.Sections
 import com.app.co_opilot.ui.components.ScreenHeader
 import com.app.co_opilot.ui.components.UserDeck
+import com.app.co_opilot.ui.screens.chats.ChatScreen
+import com.app.co_opilot.ui.screens.chats.ChatViewModel
+import com.app.co_opilot.ui.screens.chats.LocalChatViewModel
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -59,8 +67,8 @@ class ExploreScreen(private val section: Sections?): Screen {
         var activityCache by remember { mutableStateOf<Map<String, List<Activity>>>(emptyMap()) }
         var showEndMessage by remember { mutableStateOf(false) }
         var endMessageText by remember { mutableStateOf("") }
-
-
+        val navigator = LocalNavigator.currentOrThrow
+        val userId by authViewModel.currentUserId.collectAsState()
         val activities = activityCache[currentUser.id] ?: emptyList()
 
         LaunchedEffect(currentUser.id) {
@@ -96,7 +104,9 @@ class ExploreScreen(private val section: Sections?): Screen {
                         section = section!!,
                         user = currentUser,
                         activities = activities,
-                        onMessageClick = {},
+                        onMessageClick = {
+                            navigator.push(ChatScreen(userIdPair = userId!! to currentUser.id))
+                        },
                         isLiked = liked[currentIndex],
                         onLikeClick = {
                             scope.launch {
@@ -265,8 +275,17 @@ class ExploreScreen(private val section: Sections?): Screen {
                     authViewModel = ServiceLocator.authViewModel
                 )
             }
+            val chatVm = remember {
+                ChatViewModel(
+                    chatService = ServiceLocator.chatService,
+                    userService = ServiceLocator.userService
+                )
+            }
 
-            CompositionLocalProvider(LocalExploreViewModel provides exploreVm) {
+            CompositionLocalProvider(
+                    LocalExploreViewModel provides exploreVm,
+                    LocalChatViewModel provides chatVm
+            ) {
                 Navigator(ExploreScreen(section = null)) { navigator ->
                     val pending by NavStates
                         .pendingExploreSection

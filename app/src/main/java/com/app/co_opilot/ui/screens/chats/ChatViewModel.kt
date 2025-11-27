@@ -155,4 +155,8 @@ class ChatViewModel(val chatService: ChatService, val userService: UserService) 
         // send to backend
         chatService.sendMessage(curUser, otherUser, text)
     }
+
+    suspend fun hasLikedUser(currentUserId: String, otherUserId: String): Boolean {
+        return userService.hasLikedUser(currentUserId, otherUserId)
+    }
 }

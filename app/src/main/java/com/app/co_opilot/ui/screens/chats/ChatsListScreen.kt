@@ -140,6 +140,10 @@ class ChatsListScreen: Screen {
         val lastMessageMap by viewModel.lastMessageMap.collectAsState()
         var showPopup by remember { mutableStateOf(false) }
         var popupContent by remember { mutableStateOf<ListPopupEvent?>(null) }
+        
+        // Separate chats into two lists: not liked and liked
+        var chatsNotLiked by remember { mutableStateOf<List<Chat>>(emptyList()) }
+        var chatsLiked by remember { mutableStateOf<List<Chat>>(emptyList()) }
 
         LaunchedEffect(Unit) {
             viewModel.listPopupMessage.collect { ev ->
@@ -161,6 +165,28 @@ class ChatsListScreen: Screen {
         LaunchedEffect(userId) {
             viewModel.startChatListPolling(userId!!)
         }
+        
+        // Separate chats based on like status
+        LaunchedEffect(chats, userId) {
+            if (userId != null) {
+                val notLiked = mutableListOf<Chat>()
+                val liked = mutableListOf<Chat>()
+                
+                for (chat in chats) {
+                    val otherUserId = if (chat.userOneId == userId) chat.userTwoId else chat.userOneId
+                    val hasLiked = viewModel.hasLikedUser(userId!!, otherUserId)
+                    
+                    if (hasLiked) {
+                        liked.add(chat)
+                    } else {
+                        notLiked.add(chat)
+                    }
+                }
+                
+                chatsNotLiked = notLiked
+                chatsLiked = liked
+            }
+        }
         /*DisposableEffect(Unit) {
             onDispose { viewModel.stopChatListPolling() }
         }*/
@@ -175,12 +201,47 @@ class ChatsListScreen: Screen {
                     else -> LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        items(chats, key = { it.id }) { chat ->
-                            ChatCard(chat, lastMessageMap[chat.id], viewModel)
-                            HorizontalDivider(
-                                thickness = 0.7.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
+                        // Section 1: Chats where current user has NOT liked the other user
+                        if (chatsNotLiked.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "New Messages",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp)
+                                )
+                            }
+                            items(chatsNotLiked, key = { it.id }) { chat ->
+                                ChatCard(chat, lastMessageMap[chat.id], viewModel)
+                                HorizontalDivider(
+                                    thickness = 0.7.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant
+                                )
+                            }
+                            
+                            // Add spacing between sections
+                            if (chatsLiked.isNotEmpty()) {
+                                item {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
+                            }
+                        }
+                        
+                        // Section 2: Chats where current user HAS liked the other user
+                        if (chatsLiked.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Liked Matches",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp)
+                                )
+                            }
+                            items(chatsLiked, key = { it.id }) { chat ->
+                                ChatCard(chat, lastMessageMap[chat.id], viewModel)
+                                HorizontalDivider(
+                                    thickness = 0.7.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant
+                                )
+                            }
                         }
                     }
                 }

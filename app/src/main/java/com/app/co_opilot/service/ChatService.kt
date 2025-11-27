@@ -29,10 +29,10 @@ class ChatService(
     suspend fun sendMessage(senderId: String, receiverId: String, message: String): Boolean {
 
         try {
-            if (!haveMutualLike(senderId, receiverId)) {
+            /*if (!haveMutualLike(senderId, receiverId)) {
                 println("Cannot send message: Users have not mutually liked each other")
                 return false
-            }
+            }*/
 
             val chat = try {
                 chatRepo.getChat(senderId, receiverId)
@@ -47,22 +47,23 @@ class ChatService(
     }
 
     suspend fun initSession(senderId: String, receiverId: String) {
-        if (!haveMutualLike(senderId, receiverId)) {
+        /*if (!haveMutualLike(senderId, receiverId)) {
             throw IllegalStateException("Cannot create chat: Users have not mutually liked each other")
-        }
+        }*/
         chatRepo.initSession(senderId, receiverId)
     }
 
 
     suspend fun loadChatHistory(userOneId: String, userTwoId: String): List<Message> {
         try {
-            if (!haveMutualLike(userOneId, userTwoId)) {
+            /*if (!haveMutualLike(userOneId, userTwoId)) {
                 return emptyList()
-            }
+            }*/
 
             val chat = try {
                 chatRepo.getChat(userOneId, userTwoId)
-            } catch (e: IllegalArgumentException) {
+            } catch (e: Exception) {
+                chatRepo.initSession(userOneId, userTwoId)
                 return emptyList()
             }
             return chatRepo.getChatHistory(chat.id)
@@ -94,7 +95,7 @@ class ChatService(
 
             val mutualChats = allChats.filter { chat ->
                 val otherUserId = if (chat.userOneId == userId) chat.userTwoId else chat.userOneId
-                haveMutualLike(userId, otherUserId) && !isEitherUserBlocked(userId, otherUserId)
+                /*haveMutualLike(userId, otherUserId) && */ !isEitherUserBlocked(userId, otherUserId)
             }
 
             mutualChats

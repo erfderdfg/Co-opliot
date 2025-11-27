@@ -62,4 +62,9 @@ class UserService(var userRepository: UserRepository, var relationshipRepository
     suspend fun isBlocked(userOneId: String, userTwoId: String): Boolean {
         return relationshipRepository.isBlocked(userOneId, userTwoId)
     }
+
+    suspend fun hasLikedUser(userOneId: String, userTwoId: String): Boolean {
+        val relationship = relationshipRepository.findRelationship(userOneId, userTwoId)
+        return relationship?.status == RelationshipStatus.LIKED
+    }
 }
