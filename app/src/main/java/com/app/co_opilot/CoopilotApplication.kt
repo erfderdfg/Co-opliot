@@ -8,14 +8,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
@@ -28,7 +31,7 @@ import com.app.co_opilot.ui.screens.chats.ChatsListScreen
 import com.app.co_opilot.ui.screens.discovery.DiscoveryScreen
 import com.app.co_opilot.ui.screens.profile.ProfileScreen
 import com.app.co_opilot.ui.theme.CoopilotTheme
-import io.github.jan.supabase.gotrue.auth
+import kotlinx.coroutines.delay
 
 class CoopilotApplication : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,15 +47,29 @@ class CoopilotApplication : ComponentActivity() {
 fun App() {
     val authState = remember { AuthState() }
 
+    var showBottomBar by remember { mutableStateOf(authState.isAuthenticated) }
+
+    LaunchedEffect(authState.isAuthenticated) {
+        if (authState.isAuthenticated) {
+            if (!showBottomBar) {
+                delay(2000)
+                showBottomBar = true
+            }
+        } else {
+            showBottomBar = false
+        }
+    }
     CoopilotTheme {
         CompositionLocalProvider(LocalAuthState provides authState) {
             TabNavigator(AuthScreen.AuthTab) {
                 Scaffold(
                     bottomBar = {
-                        NavigationBar {
-                            TabItem(DiscoveryScreen.DiscoveryTab)
-                            TabItem(ChatsListScreen.ChatsListTab)
-                            TabItem(ProfileScreen.ProfileTab)
+                        if (showBottomBar) {
+                            NavigationBar {
+                                TabItem(DiscoveryScreen.DiscoveryTab)
+                                TabItem(ChatsListScreen.ChatsListTab)
+                                TabItem(ProfileScreen.ProfileTab)
+                            }
                         }
                     }
                 ) { innerPadding ->
