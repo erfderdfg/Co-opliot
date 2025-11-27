@@ -14,27 +14,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowLeft
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,11 +50,8 @@ import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.app.co_opilot.R
-import com.app.co_opilot.data.SupabaseClient
 import com.app.co_opilot.di.ServiceLocator
 import com.app.co_opilot.domain.User
-import com.app.co_opilot.domain.Activity
-import com.app.co_opilot.domain.enums.Sections
 import com.app.co_opilot.domain.enums.SocialMedias
 import com.app.co_opilot.domain.profile.AcademicProfile
 import com.app.co_opilot.domain.profile.BasicProfile
@@ -66,14 +59,8 @@ import com.app.co_opilot.domain.profile.CareerProfile
 import com.app.co_opilot.domain.profile.SocialProfile
 import com.app.co_opilot.ui.components.ScreenHeader
 import com.app.co_opilot.ui.components.SocialIcon
-import com.app.co_opilot.ui.components.UserDeck
-import com.app.co_opilot.ui.screens.discovery.DiscoveryScreen
-import com.app.co_opilot.ui.screens.explore.ExploreViewModel
-import com.app.co_opilot.ui.screens.explore.LocalExploreViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import com.app.co_opilot.ui.screens.explore.ExploreScreen
-import com.app.co_opilot.ui.screens.explore.ExploreScreen.NavStates
 import com.app.co_opilot.ui.screens.setting.SettingScreen
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 class ProfileScreen() : Screen {
@@ -202,9 +189,20 @@ class ProfileScreen() : Screen {
             }
             item {
                 Spacer(Modifier.height(12.dp))
+                val authState = com.app.co_opilot.data.LocalAuthState.current
+                val authViewModel = remember { ServiceLocator.authViewModel }
+                val scope = rememberCoroutineScope()
+
                 Button(
                     onClick = {
-                        // todo:: supabase auth
+                        scope.launch {
+                            try {
+                                authViewModel.logout()
+                                authState.isAuthenticated = false
+                            } catch (e: Exception) {
+                                println("Error during logout: ${e.message}")
+                            }
+                        }
                     },
                     modifier = Modifier
                         .width(128.dp)

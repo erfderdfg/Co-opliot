@@ -62,6 +62,14 @@ fun App() {
     CoopilotTheme {
         CompositionLocalProvider(LocalAuthState provides authState) {
             TabNavigator(AuthScreen.AuthTab) {
+                val tabNavigator = LocalTabNavigator.current
+
+                LaunchedEffect(authState.isAuthenticated) {
+                    if (!authState.isAuthenticated) {
+                        tabNavigator.current = AuthScreen.AuthTab
+                    }
+                }
+
                 Scaffold(
                     bottomBar = {
                         if (showBottomBar) {
