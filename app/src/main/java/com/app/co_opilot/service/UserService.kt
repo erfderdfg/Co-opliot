@@ -54,4 +54,12 @@ class UserService(var userRepository: UserRepository, var relationshipRepository
             relationshipRepository.addRelationship(userOneId, userTwoId, RelationshipStatus.LIKED)
         }
     }
+
+    suspend fun blockUser(blockerId: String, blockedId: String): Boolean {
+        return relationshipRepository.blockUser(blockerId, blockedId)
+    }
+
+    suspend fun isBlocked(userOneId: String, userTwoId: String): Boolean {
+        return relationshipRepository.isBlocked(userOneId, userTwoId)
+    }
 }

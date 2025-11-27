@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -311,6 +312,7 @@ fun UserDeck(
     isLiked: Boolean,
     onMessageClick: (() -> Unit)? = null,
     onLikeClick: (() -> Unit)? = null,
+    onBlockClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var isLiked by remember(user.id) { mutableStateOf(isLiked) }
@@ -460,7 +462,6 @@ fun UserDeck(
                 }
             }
 
-            // Like button at the bottom
             item {
                 Spacer(Modifier.height(8.dp))
                 FilledIconButton(
@@ -492,6 +493,42 @@ fun UserDeck(
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
+                    }
+                }
+            }
+
+            if (onBlockClick != null) {
+                item {
+                    Spacer(Modifier.height(8.dp))
+                    FilledIconButton(
+                        onClick = {
+                            onBlockClick.invoke()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Filled.Block,
+                                contentDescription = "Block",
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Block User",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
             }

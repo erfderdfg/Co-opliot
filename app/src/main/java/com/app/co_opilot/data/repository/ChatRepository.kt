@@ -11,7 +11,6 @@ open class ChatRepository(val supabase : SupabaseProvider) {
 
     suspend fun initSession(userOneId: String, userTwoId: String): Chat {
         try {
-            // Look for an existing chat in either user order
             val existing = supabase.client.postgrest["chats"]
                 .select {
                     filter {
@@ -30,7 +29,7 @@ open class ChatRepository(val supabase : SupabaseProvider) {
                 .decodeList<Chat>()
                 .firstOrNull()
 
-            if (existing != null) return existing   // <-- actually return it
+            if (existing != null) return existing
 
             val newChat = Chat(
                 id = UUID.randomUUID().toString(),
@@ -73,7 +72,6 @@ open class ChatRepository(val supabase : SupabaseProvider) {
             throw ce
         } catch (e: Exception) {
             e.printStackTrace()
-            // true error (network/schema/etc). Keep as state error.
             throw IllegalStateException("Failed to fetch chat", e)
         }
     }
@@ -94,7 +92,6 @@ open class ChatRepository(val supabase : SupabaseProvider) {
             throw ce
         } catch (e: Exception) {
             e.printStackTrace()
-            // Prefer empty list over crashing the app
             return emptyList()
         }
     }
@@ -128,6 +125,35 @@ open class ChatRepository(val supabase : SupabaseProvider) {
         } catch (e: Exception) {
             e.printStackTrace()
             return emptyList()
+        }
+    }
+
+    suspend fun deleteChat(userOneId: String, userTwoId: String): Boolean {
+        return try {
+            val chat = try {
+                getChat(userOneId, userTwoId)
+            } catch (e: IllegalArgumentException) {
+                return true
+            }
+
+            supabase.client.postgrest["messages"].delete {
+                filter {
+                    eq("chat_id", chat.id)
+                }
+            }
+
+            supabase.client.postgrest["chats"].delete {
+                filter {
+                    eq("id", chat.id)
+                }
+            }
+
+            true
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 }

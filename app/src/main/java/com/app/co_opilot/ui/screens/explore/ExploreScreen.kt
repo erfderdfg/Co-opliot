@@ -99,11 +99,19 @@ class ExploreScreen(private val section: Sections?): Screen {
                         onMessageClick = {},
                         isLiked = liked[currentIndex],
                         onLikeClick = {
-                            // Handle like action
                             scope.launch {
                                 liked[currentIndex] = !liked[currentIndex]
                                 exploreViewModel.likeUser(currentUser.id)
-
+                            }
+                        },
+                        onBlockClick = {
+                            scope.launch {
+                                exploreViewModel.blockUser(currentUser.id)
+                                if (currentIndex < allUsers.size - 1) {
+                                    exploreViewModel.swipeToNextUser()
+                                } else if (currentIndex > 0) {
+                                    exploreViewModel.swipeToPreviousUser()
+                                }
                             }
                         },
                         modifier = Modifier
