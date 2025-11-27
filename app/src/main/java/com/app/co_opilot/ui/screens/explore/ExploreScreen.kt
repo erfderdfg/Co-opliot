@@ -6,9 +6,17 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -67,9 +75,11 @@ class ExploreScreen(private val section: Sections?): Screen {
         var activityCache by remember { mutableStateOf<Map<String, List<Activity>>>(emptyMap()) }
         var showEndMessage by remember { mutableStateOf(false) }
         var endMessageText by remember { mutableStateOf("") }
+        var showFilterDialog by remember { mutableStateOf(false) }
         val navigator = LocalNavigator.currentOrThrow
         val userId by authViewModel.currentUserId.collectAsState()
         val activities = activityCache[currentUser.id] ?: emptyList()
+        val currentFilters = exploreViewModel.filters.getFiltersForSection(section)
 
         LaunchedEffect(currentUser.id) {
             if (activityCache[currentUser.id] == null) {
@@ -87,8 +97,32 @@ class ExploreScreen(private val section: Sections?): Screen {
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
-            ScreenHeader(section.toString().lowercase().replaceFirstChar { it.uppercase() } + " Explore",
-                subtitle = "Swipe to find your next " + section.toString().lowercase() + " buddies!" )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                ScreenHeader(
+                    section.toString().lowercase().replaceFirstChar { it.uppercase() } + " Explore",
+                    subtitle = "Swipe to find your next " + section.toString().lowercase() + " buddies!",
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(8.dp))
+                IconButton(
+                    onClick = { showFilterDialog = true },
+                    modifier = Modifier.padding(top = 36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Filter",
+                        tint = if (exploreViewModel.filters.isEmpty(section)) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        }
+                    )
+                }
+            }
 
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -247,6 +281,19 @@ class ExploreScreen(private val section: Sections?): Screen {
                     }
                 }
             }
+            
+            // Filter Dialog
+            if (showFilterDialog) {
+                FilterDialog(
+                    section = section,
+                    users = exploreViewModel.allUsers,
+                    currentFilters = currentFilters,
+                    onDismiss = { showFilterDialog = false },
+                    onApply = { newFilters ->
+                        exploreViewModel.updateFilters(section, newFilters)
+                    }
+                )
+            }
         }
 
     }
@@ -257,8 +304,92 @@ class ExploreScreen(private val section: Sections?): Screen {
         LaunchedEffect(Unit) {
             viewModel.loadUsers(section)
         }
-        if (viewModel.userList.isNotEmpty() && section != null) {
-            SwipingView(viewModel)
+        if (section != null) {
+            if (viewModel.userList.isNotEmpty()) {
+                SwipingView(viewModel)
+            } else {
+                EmptyStateView(viewModel)
+            }
+        }
+    }
+    
+    @Composable
+    fun EmptyStateView(exploreViewModel: ExploreViewModel) {
+        var showFilterDialog by remember { mutableStateOf(false) }
+        val currentFilters = exploreViewModel.filters.getFiltersForSection(section)
+        
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                ScreenHeader(
+                    section.toString().lowercase().replaceFirstChar { it.uppercase() } + " Explore",
+                    subtitle = "Swipe to find your next " + section.toString().lowercase() + " buddies!",
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(8.dp))
+                IconButton(
+                    onClick = { showFilterDialog = true },
+                    modifier = Modifier.padding(top = 36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Filter",
+                        tint = if (exploreViewModel.filters.isEmpty(section)) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        }
+                    )
+                }
+            }
+            
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(32.dp)
+                ) {
+                    Text(
+                        text = if (exploreViewModel.filters.isEmpty(section)) {
+                            "No users found"
+                        } else {
+                            "No users match your filters"
+                        },
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = if (exploreViewModel.filters.isEmpty(section)) {
+                            "Try adjusting your filters to see more results"
+                        } else {
+                            "Try adjusting your filters or clearing them to see more results"
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+            }
+            
+            // Filter Dialog
+            if (showFilterDialog) {
+                FilterDialog(
+                    section = section,
+                    users = exploreViewModel.allUsers,
+                    currentFilters = currentFilters,
+                    onDismiss = { showFilterDialog = false },
+                    onApply = { newFilters ->
+                        exploreViewModel.updateFilters(section, newFilters)
+                    }
+                )
+            }
         }
     }
 
