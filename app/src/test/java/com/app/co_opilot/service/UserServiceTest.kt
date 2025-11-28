@@ -171,12 +171,12 @@ class UserServiceTest {
     @Test
     fun login_doesNotCrash_whenCalled() = runTest {
         userService.login("test@uwaterloo.ca", "password")
-        // TODO
+        verifyNoInteractions(userRepository, relationshipRepository)
     }
 
     @Test
     fun signup_doesNotCrash_whenCalled() = runTest {
         userService.signup("test@uwaterloo.ca", "password")
-        // TODO
+        verifyNoInteractions(userRepository, relationshipRepository)
     }
 }

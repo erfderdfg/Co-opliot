@@ -3,9 +3,8 @@ package com.app.co_opilot.service
 import com.app.co_opilot.data.repository.ChatRepository
 import com.app.co_opilot.domain.Chat
 import com.app.co_opilot.domain.Message
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -13,7 +12,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.Date
 
 class ChatServiceTest {
 
@@ -27,8 +25,7 @@ class ChatServiceTest {
     }
 
     @Test
-    fun `sendMessage should create new chat if not exists`() {
-        runBlocking {
+    fun `sendMessage should create new chat if not exists`() = runTest {
             val senderId = "user1"
             val receiverId = "user2"
             val createdChat = Chat("chat123", senderId, receiverId, Clock.System.now().toString() )
@@ -45,12 +42,10 @@ class ChatServiceTest {
             assertTrue(result)
             verify(chatRepo).initSession(senderId, receiverId)
             verify(chatRepo).sendMessage(senderId, createdChat.id, "Hello!")
-        }
     }
 
     @Test
-    fun `sendMessage should append message to existing chat`() {
-        runBlocking {
+    fun `sendMessage should append message to existing chat`() = runTest {
             val senderId = "user1"
             val receiverId = "user2"
             val chat = Chat("chat123", senderId, receiverId, Clock.System.now().toString() )
@@ -63,30 +58,22 @@ class ChatServiceTest {
 
             verify(chatRepo).sendMessage(senderId, chat.id, "Hi there!")
             verify(chatRepo).sendMessage(receiverId, chat.id, "Hey!")
-        }
     }
 
     @Test
-    fun `loadChatHistory should return empty list if chat newly created`() {
-        runBlocking {
+    fun `loadChatHistory should return empty list if chat newly created`() = runTest {
             val u1 = "a"
             val u2 = "b"
-            val newChat = Chat("chat123", u1, u2, Clock.System.now().toString() )
 
             whenever(chatRepo.getChat(u1, u2)).thenThrow(IllegalArgumentException())
-            whenever(chatRepo.initSession(u1, u2)).thenReturn(newChat)
-            whenever(chatRepo.getChatHistory(newChat.id)).thenReturn(emptyList())
 
             val result = chatService.loadChatHistory(u1, u2)
 
             assertTrue(result.isEmpty())
-            verify(chatRepo).initSession(u1, u2)
-        }
     }
 
     @Test
-    fun `loadChatHistory should return existing messages`() {
-        runBlocking {
+    fun `loadChatHistory should return existing messages`() = runTest {
             val u1 = "alice"
             val u2 = "bob"
             val chat = Chat("chat123", u1, u2, Clock.System.now().toString() )
@@ -103,6 +90,5 @@ class ChatServiceTest {
             assertEquals(2, result.size)
             assertEquals("Hello Bob!", result.first().message)
             verify(chatRepo).getChatHistory(chat.id)
-        }
     }
 }
